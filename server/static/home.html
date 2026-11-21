@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人工智能学院 · 实验室小助手</title>
+<link rel="preload" as="image" href="/static/agent-wink.jpg">
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e5e7eb; --ink:#15181d; --sub:#5f6773;
+    --accent:#2f6fed; --soft:#eaf1ff; --tea:#0f766e; --teasoft:#e6f4f1;
+    --wood:#8a6236; --woodsoft:#fbf4e6; --woodline:#eddfc6; --r:15px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--panel);color:var(--ink);overflow:hidden;
+    font:14.5px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+
+  /* 计划书 页面1：两栏——左栏 logo 汇聚，右栏按身份进入 */
+  .gate{display:grid;grid-template-columns:56% 44%;height:100vh;overflow:hidden}
+  @media(max-width:980px){
+    .gate{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100vh}
+    body{overflow:auto}
+    /* 竖直排的时候没有"环绕"的空间了，气泡改成贴在名字下方的一条带。
+       留白得按视口给：12 个排三行、每行四个，整条占七成宽，泡的直径就不是小数了。 */
+    .stage{padding:22px 0 clamp(230px,34vh,340px);border-right:0;border-bottom:1px solid #eee7db}
+    .pick{padding:30px 24px 44px;justify-content:center}
+  }
+
+  /* ---------- 左：logo ---------- */
+  .stage{position:relative;
+    /* 底色跟着 logo 走：那只猫是暖米色，冷蓝底会把图衬得像贴上去的 */
+    background:radial-gradient(120% 90% at 45% 38%, #fdfbf7 0%, #f7f2e9 56%, #ece4d6 100%);
+    overflow:hidden;border-right:1px solid #eae2d4}
+  .lockup{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:24px;pointer-events:none;padding:24px}
+  @media(max-width:980px){.lockup{position:static}}
+
+  /* 方形画布 + 圆形图，两个叠在一起：画布负责"汇聚"，图负责"清楚"。
+     粒子点阵拼照片终究是糊的，落定后让真图显影才认得出是什么。 */
+  .mark{position:relative;width:min(47vh,342px);aspect-ratio:1/1}
+  @media(max-width:980px){.mark{width:min(190px,46vw)}}
+  #dot{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .mark img{position:absolute;inset:3%;width:94%;height:94%;border-radius:50%;
+    object-fit:cover;opacity:0;transition:opacity .5s ease;
+    box-shadow:0 14px 34px rgba(126,104,68,.18);background:#f6efe4}
+  /* 眨了眼的猫叠在 logo 上面：点气泡时露一下，回来就换回原图 */
+  #wink{opacity:0;transition:opacity .18s ease,transform .24s cubic-bezier(.2,1.4,.4,1);
+    transform:scale(.94);pointer-events:none}
+  .mark.wink #logo{opacity:0 !important;transition:opacity .16s ease}
+  .mark.wink #wink{opacity:1;transform:scale(1.02)}
+
+  .name{font-size:clamp(15px,1.28vw,18.5px);font-weight:650;color:#2b313a;
+    letter-spacing:.02em;white-space:nowrap;text-align:center}
+  .name i{font-style:normal;color:#5f6773;margin:0 3px;font-weight:600}
+
+  /* ---------- 气泡：今日被问得最多的实验室 ----------
+     照"肥皂泡"做：膜本身没有颜色，内部几乎全透明，能看见的东西全在边上——
+     一圈细亮环、左上一颗小圆点高光、底部一道弧形反光。
+     浅米底上纯白边几乎看不见，所以右下再压一道极淡的暖灰，泡才有轮廓。 */
+  .bubbles{position:absolute;inset:0;z-index:3;pointer-events:none}
+  .bubw{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+  .pop{width:100%;height:100%;pointer-events:auto;
+    animation:pop .62s cubic-bezier(.18,1.5,.42,1) both;animation-delay:var(--d,0s)}
+  @keyframes pop{from{opacity:0;transform:scale(.18)}to{opacity:1;transform:scale(1)}}
+  .bubbles.still .pop{animation:none}
+  .bubbles.still .bub{opacity:1}
+
+  .bub{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    width:100%;height:100%;border-radius:50%;overflow:hidden;
+    padding:0 12%;text-align:center;text-decoration:none;
+    color:#4a5666;font-weight:650;line-height:1.16;letter-spacing:.01em;
+    text-shadow:0 1px 2px rgba(255,255,255,.95),0 0 9px rgba(255,255,255,.8);
+    /* 膜里是空气：不填色。亮的全在边上一圈和两处反光上 */
+    background:
+      radial-gradient(circle at 30% 21%, rgba(255,255,255,.55) 0 3%, rgba(255,255,255,.14) 11%, rgba(255,255,255,0) 25%),
+      radial-gradient(circle at 76% 86%, rgba(255,255,255,.26) 0 4%, rgba(255,255,255,0) 24%);
+    border:1px solid rgba(255,255,255,.42);
+    box-shadow:
+      /* 一圈细亮环：泡的"存在感"全靠它 */
+      inset 0 0 0 1px rgba(255,255,255,.9),
+      inset 0 0 13px rgba(255,255,255,.34),
+      /* 右下的暖灰暗边：底面是米色，纯白环是看不见的 */
+      inset -3px -6px 14px -7px rgba(122,108,84,.5),
+      inset 2px 5px 12px -8px rgba(255,255,255,.9),
+      0 2px 10px -4px rgba(126,110,88,.13);
+    transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+  .bub span{position:relative;z-index:1;display:block;max-width:100%;white-space:nowrap}
+  /* 左上那颗小圆点：肥皂泡最有辨识度的一笔，少了就只是个圈 */
+  .bub::before{content:"";position:absolute;left:24%;top:17%;width:9%;height:9%;
+    min-width:4px;min-height:4px;border-radius:50%;pointer-events:none;
+    background:#fff;opacity:.92;filter:blur(.4px)}
+  /* 底部的弧形反光：一段很淡的圆环底边 */
+  .bub::after{content:"";position:absolute;left:13%;bottom:7%;width:74%;height:34%;
+    border-radius:50%;pointer-events:none;
+    border-bottom:2.5px solid rgba(255,255,255,.8);
+    filter:blur(1.8px);transform:rotate(-5deg)}
+  .bub:hover{transform:scale(1.05);border-color:rgba(255,255,255,.85);
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,.46),
+      inset -2px -6px 12px -5px rgba(130,118,96,.28),
+      inset 2px 4px 12px -6px rgba(255,255,255,1),
+      0 10px 22px -8px rgba(120,105,80,.24)}
+  .bub:active{transform:scale(.97)}
+  /* 点下去之后：泡涨一下、亮一圈，跳转前把"点到了"这件事说清楚 */
+  .bub.going{transform:scale(1.1);border-color:#fff;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,.55),
+      0 0 0 3px rgba(255,255,255,.5),
+      0 10px 26px -8px rgba(120,105,80,.28)}
+  .bub:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    .pop{animation:none}
+    .bub{transition:none}
+  }
+
+  /* 降低动效偏好：直接给静态图，别让人等一场他不需要看的动画 */
+  @media(prefers-reduced-motion:reduce){
+    .mark img{opacity:1;transition:none}
+    .skip{display:none}
+  }
+
+  .skip{position:absolute;right:14px;bottom:12px;z-index:6;border:1px solid #e2d8c6;background:rgba(255,255,255,.86);
+    color:#8b8272;font:inherit;font-size:11.5px;padding:5px 11px;border-radius:999px;cursor:pointer;
+    transition:.18s;backdrop-filter:blur(4px)}
+  .skip:hover{color:var(--ink);border-color:#d0c2a9}
+  .skip[hidden]{display:none}
+
+  /* ---------- 右：三个入口 ---------- */
+  .pick{background:var(--panel);display:flex;flex-direction:column;justify-content:center;
+    padding:0 clamp(28px,5vw,76px)}
+  .doors{display:flex;flex-direction:column;gap:15px;max-width:468px;width:100%;margin:0 auto}
+  .door{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:17px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:19px 21px;
+    text-decoration:none;color:inherit;transition:.17s}
+  .door:hover{border-color:#c8d8f6;box-shadow:0 9px 24px rgba(47,111,237,.09);transform:translateY(-1px)}
+  .door:active{transform:translateY(0)}
+  .door:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* 头像统一圆形：三只猫都带一张米色圆底，裁圆后边缘正好是它自己的底 */
+  .face{width:52px;height:52px;border-radius:50%;overflow:hidden;display:grid;place-items:center;
+    background:#f6efe6;border:1px solid #eee6da;flex:0 0 auto}
+  .face img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06)}
+  .face.lib{background:var(--woodsoft);border-color:var(--woodline);color:var(--wood)}
+
+  .tt{font-size:17px;font-weight:650;letter-spacing:-.1px}
+  .ar{color:#c4cad3;font-size:17px;transition:.16s}
+  .door:hover .ar{color:var(--accent);transform:translateX(2px)}
+  .door.tea:hover{border-color:#c6e3dc;box-shadow:0 9px 24px rgba(15,118,110,.09)}
+  .door.tea:hover .ar{color:var(--tea)}
+  .door.lib{background:linear-gradient(180deg,#fdfaf3,#fbf5e9);border-color:var(--woodline)}
+  .door.lib .tt{color:#5f4828}
+  .door.lib:hover{border-color:#e2cda6;box-shadow:0 9px 24px rgba(138,98,54,.13)}
+  .door.lib:hover .ar{color:var(--wood)}
+</style>
+</head>
+<body>
+
+<div class="gate">
+
+  <!-- 左栏：粒子汇聚成 logo -->
+  <section class="stage">
+    <div class="lockup">
+      <div class="mark">
+        <canvas id="dot"></canvas>
+        <img id="logo" src="/static/logo.jpg" alt="人工智能学院实验室小助手">
+        <img id="wink" src="/static/agent-wink.jpg" alt="" aria-hidden="true">
+      </div>
+      <div class="name">人工智能学院<i>-</i>实验室小助手</div>
+    </div>
+    <!-- 气泡由 /api/hotlabs 填：今日被问得最多的 12 个实验室 -->
+    <div class="bubbles" id="bubbles" aria-label="今日热门实验室"></div>
+    <button class="skip" id="skip" type="button">跳过动画</button>
+  </section>
+
+  <!-- 右栏：三个入口，只留名字 -->
+  <main class="pick">
+    <div class="doors">
+      <a class="door stu" href="/chat" id="d-stu">
+        <span class="face"><img src="/static/cat-student.png" alt=""></span>
+        <span class="tt">我是学生</span>
+        <span class="ar">→</span>
+      </a>
+
+      <a class="door tea" href="/teacher" id="d-tea">
+        <span class="face"><img src="/static/cat-teacher.png" alt=""></span>
+        <span class="tt">我是教师</span>
+        <span class="ar">→</span>
+      </a>
+
+      <a class="door lib" href="/lab" id="d-lib">
+        <span class="face lib">
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.2" y="7" width="4" height="11.4" rx="1"/>
+            <rect x="8.7" y="4.6" width="4" height="13.8" rx="1"/>
+            <path d="M15 6.6l3.9 1.1-2.7 10.6-3.8-1z"/>
+            <path d="M2.4 20.6h19.2"/>
+          </svg>
+        </span>
+        <span class="tt">实验室档案</span>
+        <span class="ar">→</span>
+      </a>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============ 粒子汇聚成 logo ============
+   与上一版（汇聚成一行字）不同的地方：落点是照片的像素，不是字形。
+   做法：把 logo 缩到 168×168 的离屏画布，取"偏暗"和"有边缘"的像素当落点，
+   粒子从画布内散点飞过去，落定后由水蓝转主色，同时真图淡入 ——
+   点阵拼照片终究是糊的，最后得让图自己显影，否则认不出是什么。 */
+(function(){
+  const cv = document.getElementById('dot');
+  const ctx = cv.getContext('2d');
+  const logo = document.getElementById('logo');
+  const skipBtn = document.getElementById('skip');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const DPR = Math.min(devicePixelRatio || 1, 2);
+  const DUR = 2000;              // 计划书要求 ≤3s
+  const GRID = 172;              // 采样网格：再细就是噪点，再粗认不出五官
+
+  let W = 0, H = 0;
+  let parts = [], raf = 0, t0 = 0, settled = false, last = 0;
+
+  function sample(w, h){
+    const off = document.createElement('canvas');
+    off.width = GRID; off.height = GRID;
+    const c = off.getContext('2d', {willReadFrequently: true});
+    c.drawImage(logo, 0, 0, GRID, GRID);
+    let px;
+    try { px = c.getImageData(0, 0, GRID, GRID).data; }
+    catch (e) { return []; }     // 理论上同源不会抛，兜一下免整页挂掉
+
+    const cx = GRID / 2, cy = GRID / 2, R = GRID * 0.47;   // 只取圆内，和图一样是个圆
+    const inside = (x, y) => {
+      const dx = x - cx, dy = y - cy;
+      return dx * dx + dy * dy <= R * R;
+    };
+    const lum = (x, y) => {
+      const i = (y * GRID + x) * 4;
+      return 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+    };
+
+    /* 先量一遍这张图自己的明暗区间。
+       直接用绝对亮度分档是行不通的——这只猫是灰白色的，整张几乎都落在 110–190，
+       按 205 当白点去算，处处都是"有点暗"，采样点铺满整个圆，看着就是个噪点球。
+       改成分位数归一化：把这张图最暗的 8% 当黑、最亮的 8% 当白，中间拉满，
+       明暗差才变成看得见的密度差（点画法）。 */
+    const vals = [];
+    for (let y = 0; y < GRID; y++){
+      for (let x = 0; x < GRID; x++) if (inside(x, y)) vals.push(lum(x, y));
+    }
+    if (!vals.length) return [];
+    vals.sort((a, b) => a - b);
+    const lo = vals[Math.floor(vals.length * 0.08)];
+    const hi = vals[Math.floor(vals.length * 0.92)];
+    const span = Math.max(12, hi - lo);
+
+    const pts = [];
+    for (let y = 0; y < GRID; y++){
+      for (let x = 0; x < GRID; x++){
+        if (!inside(x, y)) continue;
+        const l = lum(x, y);
+        const n = Math.min(1, Math.max(0, (l - lo) / span));   // 0=最暗 1=最亮
+        // 暗处几乎全留、亮处只留零星几点；1.7 次方让中间调掉得快一些，五官更挺
+        let keep = Math.pow(1 - n, 1.45);
+        const edge = (x + 2 < GRID && Math.abs(l - lum(x + 2, y)) > 22)
+                  || (y + 2 < GRID && Math.abs(l - lum(x, y + 2)) > 22);
+        if (edge) keep = Math.max(keep, 0.5);    // 轮廓不能靠运气，给个下限
+        if (Math.random() < keep) pts.push([x / GRID * w, y / GRID * h]);
+      }
+    }
+    return pts;
+  }
+
+  function build(){
+    const box = cv.parentElement.getBoundingClientRect();
+    W = Math.max(1, Math.round(box.width));
+    H = Math.max(1, Math.round(box.height));
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const pts = sample(W, H);
+    // 粒子太多拖慢低端机：按比例抽稀，形状不变
+    const cap = 9000;
+    const k = pts.length > cap ? pts.length / cap : 1;
+    parts = [];
+    for (let i = 0; i < pts.length; i += k){
+      const p = pts[Math.floor(i)];
+      // 起点散在圆内（不是整个方画布）：方的一团噪点和最终的圆对不上，
+      // 但也不能从画布外飞入——那样开场半秒是空白，像没加载出来
+      const ang = Math.random() * Math.PI * 2;
+      const rr = Math.sqrt(Math.random()) * W * 0.5;
+      parts.push({
+        tx: p[0], ty: p[1],
+        sx: W / 2 + Math.cos(ang) * rr,
+        sy: H / 2 + Math.sin(ang) * rr,
+        // 自上而下错峰：像显影液从上方淌下来
+        delay: (p[1] / H) * 380 + Math.random() * 240,
+        sp: 0.75 + Math.random() * 0.5,
+        sz: Math.random() < 0.1 ? 1.9 : 1.4,
+        a: 0.7 + Math.random() * 0.3
+      });
+    }
+    t0 = performance.now();
+    settled = false;
+    if (!DOTS_ONLY && !winking()) logo.style.opacity = 0;   // resize 重建时也要藏回去，否则动画在图下面白跑
+    skipBtn.hidden = reduce;
+  }
+
+  const ease = p => 1 - Math.pow(1 - p, 3);
+
+  /* 点气泡时 logo 要让位给眨眼的猫，这里别再把原图顶回来 */
+  const winking = () => document.body.classList.contains('winking');
+  function setLogo(v){ if (!winking()) logo.style.opacity = v; }
+
+  function draw(now){
+    if (settled) return;      // 落定后别再擦掉重画（上一版踩过：画完被第一帧盖回去）
+    last = now;
+    const el = now - t0;
+    const prog = Math.min(1, el / DUR);
+
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts){
+      const raw = (el - p.delay) / (DUR * p.sp);
+      const t = raw <= 0 ? 0 : raw >= 1 ? 1 : ease(raw);
+      const x = p.sx + (p.tx - p.sx) * t;
+      const y = p.sy + (p.ty - p.sy) * t;
+      // 没到位时是水蓝，落定后转深色：颜色本身就是"到位了"的反馈
+      ctx.fillStyle = t < 1
+        ? `rgba(128,166,238,${0.32 + p.a * 0.4})`
+        : `rgba(74,86,110,${p.a * 0.9})`;
+      ctx.fillRect(x, y, p.sz, p.sz);
+    }
+
+    // 八成半以后真图淡入：先看清轮廓，再让它变成照片
+    if (prog > 0.84 && !DOTS_ONLY) setLogo(String(Math.min(1, (prog - 0.84) / 0.16)));
+
+    if (el > DUR * 1.5 + 600) finish();
+    else raf = requestAnimationFrame(draw);
+  }
+
+  function finish(){
+    cancelAnimationFrame(raf);
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts){
+      ctx.fillStyle = `rgba(74,86,110,${p.a * 0.9})`;
+      ctx.fillRect(p.tx, p.ty, p.sz, p.sz);
+    }
+    if (!DOTS_ONLY) setLogo(1);
+    settled = true;
+    // 气泡等这一刻才登场：粒子还在飞的时候飘一圈玻璃球，会像噪点上又撒了把珠子
+    document.body.dataset.settled = '1';
+    document.dispatchEvent(new Event('stage:settled'));
+    skipBtn.hidden = true;
+  }
+
+  skipBtn.onclick = finish;
+
+  /* 图片没就位就采样会得到全白 —— 必须先 onload 再 build */
+  const QS = new URLSearchParams(location.search);
+  let STILL = QS.get('still') === '1';        // 截图/核对用：直接落定
+  const DOTS_ONLY = QS.get('dots') === '1';   // 只用来看粒子点阵长什么样
+  logo.addEventListener('load', () => {
+    build();
+    if (STILL || reduce) finish(); else raf = requestAnimationFrame(draw);
+  });
+  logo.addEventListener('error', () => { ctx.clearRect(0, 0, W, H); skipBtn.hidden = true; });
+  if (logo.complete && logo.naturalWidth) logo.dispatchEvent(new Event('load'));
+
+  /* 看门狗：个别环境（无头截图、后台标签页）rAF 不推进，光靠它动画会僵在第一帧。
+     250ms 没有新帧就用定时器自己推，真浏览器里这条基本不触发。 */
+  setInterval(() => {
+    if (!settled && parts.length && performance.now() - last > 250) draw(performance.now());
+  }, 120);
+
+  // 尺寸变了要重新采样，否则图会被拉变形
+  let rz = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rz);
+    rz = setTimeout(() => {
+      cancelAnimationFrame(raf);
+      build();
+      if (STILL || reduce) finish(); else raf = requestAnimationFrame(draw);
+    }, 180);
+  });
+})();
+</script>
+
+<script>
+/* ============ 气泡：今日被问得最多的 12 个实验室 ============
+   为什么是 DOM 不是 canvas：每个气泡本身就是一个 <a>，点击、键盘 Tab、右键新标签
+   都天然可用；canvas 得自己算了命中区再补一遍可访问性。
+   物理只有三件事：回位弹簧（围着 logo 慢慢飘）、圆与圆的弹性碰撞（碰上就弹开）、
+   两块禁入区（logo 那个圆、下面那行字）——不做重力，气泡是"浮"着的不是"落"着的。 */
+(function(){
+  const stage = document.querySelector('.stage');
+  const layer = document.getElementById('bubbles');
+  const mark  = document.querySelector('.mark');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const QS = new URLSearchParams(location.search);
+  if (QS.get('dots') === '1') return;                       // 只看粒子点阵时别掺气泡
+  const STILL = QS.get('still') === '1' || reduce;
+  const mqNarrow = matchMedia('(max-width:980px)');   // 单列布局：气泡只能排成带
+
+  const N = 12;                                            // 一圈的泡数，跟着 hot.TOP_N 走
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  let nodes = [], geo = null, raf = 0, last = 0;
+  let built = false, loading = false, running = false, winking = false;
+
+  const mc = document.createElement('canvas').getContext('2d');
+  const fontOf = fs => `650 ${fs}px -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif`;
+  const widthOf = (s, fs) => { mc.font = fontOf(fs); return mc.measureText(s).width; };
+
+  /* 圆里放不下全名。先去掉括号备注和"实验室/俱乐部"这类后缀，再按圆内的宽度折行——
+     截成"人工智"这种半截词比不放字更糟；两行能装下"多源感知 / 及智能计算"就装。 */
+  function cleanName(name){
+    const base = String(name || '').replace(/[（(][^）)]*[）)]/g, '').trim();
+    const cut = base.replace(/(创新实验室|实验室|俱乐部|协会|中心)$/, '');
+    return cut.length >= 3 ? cut : base;
+  }
+
+  /* 英文缩写/品牌名不能被拆成 "RoboMast / er"：先把连续的半角字符收成一个词，
+     整词放不下再退化成按字断。中文没有这个问题，一个字就是一个单位。 */
+  function tokens(name){
+    const out = [];
+    let buf = '';
+    for (const ch of cleanName(name)){
+      if (/[A-Za-z0-9._+#\-]/.test(ch)) buf += ch;
+      else { if (buf){ out.push(buf); buf = ''; } out.push(ch); }
+    }
+    if (buf) out.push(buf);
+    return out;
+  }
+
+  function wrapName(name, maxW, fs, maxLines){
+    const toks = [];
+    for (const t of tokens(name)){
+      if (widthOf(t, fs) <= maxW) toks.push(t);
+      else for (const ch of t) toks.push(ch);   // 单个词比整行还长，只能硬断
+    }
+    const out = [];
+    let i = 0;
+    while (i < toks.length && out.length < maxLines){
+      let line = '';
+      while (i < toks.length && widthOf(line + toks[i], fs) <= maxW) line += toks[i++];
+      if (!line) line = toks[i++];              // 一个字都放不下也得放一个，免得空行
+      out.push(line);
+    }
+    // 最后一行只剩一个字很难看（"中德物联 / 网"），从上一行借一个下来
+    if (out.length === 2 && [...out[1]].length === 1 && [...out[0]].length >= 3){
+      const a = [...out[0]];
+      out[0] = a.slice(0, -1).join('');
+      out[1] = a[a.length - 1] + out[1];
+    }
+    if (i < toks.length && out.length){
+      let last = out[out.length - 1];
+      while (last && widthOf(last + '…', fs) > maxW) last = last.slice(0, -1);
+      out[out.length - 1] = (last || out[out.length - 1].slice(0, 1)) + '…';
+    }
+    return out;
+  }
+
+  function geometry(){
+    const sr = stage.getBoundingClientRect();
+    const mr = mark.getBoundingClientRect();
+    const nr = document.querySelector('.name').getBoundingClientRect();
+    return {
+      w: sr.width, h: sr.height,
+      cx: mr.left - sr.left + mr.width / 2,
+      cy: mr.top - sr.top + mr.height / 2,
+      /* 环心取"图 + 那行字"的整体中心：只按图算的话，字占的那二十几像素
+         会把整圈顶上去，看起来头重脚轻（上面贴着边、下面空一大块）。 */
+      ly: (mr.top + nr.bottom) / 2 - sr.top,
+      R: mr.width / 2,
+      nx1: nr.left - sr.left - 10, ny1: nr.top - sr.top - 6,
+      nx2: nr.right - sr.left + 10, ny2: nr.bottom - sr.top + 6,
+      band: mqNarrow.matches || sr.height < 460,
+      by1: nr.bottom - sr.top + 10,
+      by2: sr.height - 8,
+    };
+  }
+
+  /* 半径不拍脑袋，从"这一圈要占多少版心"倒推。环的外沿包络是
+     2(R + 2cap + gap)：让横向够到 77%、纵向够到 70%（这两档肉眼看着才是"七成"，
+     严格各 70% 会显得偏扁），取更紧的一边。窗口一变气泡跟着放大缩小，
+     不再固定成一个 45px 的常数、在大屏里像撒了几颗豆子。
+
+     但光看包络还不够：一圈的周长是有限的，泡多到挤不下就会互相顶开、被弹簧拉回，
+     一帧一帧地抖。所以再按"这些球在环上占的弧长"卡一次——直径之和 + 每个缝
+     ≤ 周长的 93%，两档取小：包络管"看着够大"，弧长管"排得开"。
+
+     12 个的时候这两档是反过来的：包络给 79.7、弧长给 72，弧长成了真正的天花板。
+     也就是说这一圈能装多大由周长定，包络只是别让它顶出版心——所以包络放宽到
+     横向 86%、纵向 78%（原来 77%/70%）。 */
+  const GAP = 10;
+  const SPACING = 8;                       // 相邻两泡之间留的缝
+  function bandRows(n){ return n > 10 ? 3 : 2; }
+
+  function capOf(g, n){
+    n = n || N;
+    const minSide = Math.min(g.w, g.h);
+    if (g.band){
+      // 每行几个由行数定（12 个 → 三行四个）：半径 = 0.41w/per，整条占八成宽。
+      // 手机窄到只剩二十几像素时连名字都塞不进去，给个 30 的下限；
+      // 再拿带高卡一下，别让几行互相压。
+      const rows = bandRows(n);
+      const per = Math.ceil(n / rows);
+      const byWidth = Math.max(30, g.w * 0.41 / per);
+      const byHeight = (g.by2 - g.by1 - 18 - 10 * (rows - 1)) / (2 * rows);
+      return Math.max(12, Math.min(byWidth, byHeight));
+    }
+    const fitW = (g.w * 0.43 - g.R - GAP) / 2;
+    const fitH = (g.h * 0.39 - g.R - GAP) / 2;
+    // 弧长：1.6·n·cap（直径之和，按均值 0.8cap 算）+ n·SPACING ≤ 0.93 · 2π(R+cap+GAP)
+    const C = Math.PI * 2 * 0.93;
+    const byRing = (C * (g.R + GAP) - n * SPACING) / (1.6 * n - C);
+    let cap = Math.min(fitW, fitH, byRing);
+    // 版心太窄时（左栏被 logo 吃满），七成会算成个位数：给个下限，但别顶出左右边界
+    const floor = minSide * 0.065;
+    if (cap < floor) cap = Math.min(fitW, floor);
+    return Math.max(13, cap);
+  }
+
+  function radiusOf(rank, n, g){
+    const cap = capOf(g, n);
+    /* 桌面上一圈里名次差得多一点（第一名比末位大六成）才看得出远近；
+       手机上排成三行、每颗本来就小，再按六成缩，最后一行只剩二十出头，
+       名字被裁成"自然…"。窄屏把差距收到两成，末行也还塞得下四个字。 */
+    const spread = g.band ? 0.22 : 0.40;
+    const f = n <= 1 ? 1 : 1 - (rank - 1) * (spread / (n - 1));
+    return Math.max(15, cap * f);
+  }
+
+  /* 整环的落点一次算完（见 homeOf 里的注释），按版心缓存：一帧里要被问 12 次。 */
+  let ringCache = null;
+  function ringPos(i, n, g){
+    const key = [n, g.w, g.h, g.cx, g.ly, g.R, g.ny2].join('|');
+    if (ringCache && ringCache.key === key) return ringCache.pos[i];
+    const cap = capOf(g, n);
+    const rr = g.R + cap + GAP;
+    const rho = Math.max(rr, (g.ny2 + cap + 8) - g.ly);
+    const radOf = a => {
+      const s = Math.sin(a);
+      /* 撑开要缓：半径在一两颗之内就跳掉一成的话，那两颗之间的缝会突然变成
+         半颗泡那么宽（实测 57px）。所以过渡带从 -0.55 一路铺到 1，
+         每颗之间只差几像素，上半圈（sin < -0.55）仍是纯正圆。 */
+      const k = clamp((s + 0.55) / 1.5, 0, 1);
+      return rr + (rho - rr) * k * k * (3 - 2 * k);
+    };
+    const rs = [];
+    for (let k = 0; k < n; k++) rs.push(radiusOf(k + 1, n, g));
+    /* 不能"按角度均分"：半径沿角变化时，同样的角度对应的弧长不一样，
+       按角度分完，撑开的那一段会空出半颗泡的位置（肉眼就是环断了一节）。
+       所以从正上方起一颗一颗走，每颗都按"圆心距 = 两个半径 + 缝"反解下一个角
+       （余弦定理，半径跟着角度变，就地迭代三次）。走完一圈多退少补，
+       用整体缩放把最后那一格也归位——缩放两三轮就收敛。 */
+    const want = k => rs[k] + rs[(k + 1) % n] + SPACING;
+    const step = (a, w) => {
+      const ra = radOf(a);
+      let d = w / ra;
+      for (let it = 0; it < 10; it++){
+        const rb = radOf(a + d);
+        d = Math.acos(clamp((ra * ra + rb * rb - w * w) / (2 * ra * rb), -1, 1));
+      }
+      return d;
+    };
+    let ang = [], scale = 1;
+    for (let pass = 0; pass < 8; pass++){
+      ang = [-Math.PI / 2];
+      for (let k = 0; k < n - 1; k++) ang.push(ang[k] + step(ang[k], want(k)) * scale);
+      const dClose = step(ang[n - 1], want(n - 1)) * scale;
+      const total = (ang[n - 1] - ang[0]) + dClose;
+      scale *= Math.PI * 2 / total;
+      if (Math.abs(total - Math.PI * 2) < 0.002) break;
+    }
+    ringCache = {key, pos: ang.map(a => ({
+      x: g.cx + Math.cos(a) * radOf(a),
+      y: g.ly + Math.sin(a) * radOf(a),
+    }))};
+    return ringCache.pos[i];
+  }
+
+  /* 落点：桌面围成一个环，窄屏排成一条带。
+     环内横向贴着 logo 外沿，纵向要再往下让一让——下面那行字正好在 logo 正下方，
+     落在它左右两侧的气泡还得再压低一点，否则圆的边会啃到字（实测差 2–3px）。 */
+  function homeOf(i, n, g, r){
+    if (g.band){
+      // 窄屏（竖排）：名字下方排成几行，名次靠前的在上排。
+      // 行高用"最大的那颗"统一算——各按各的半径会排成高低不齐的锯齿。
+      const rows = bandRows(n);
+      const per = Math.ceil(n / rows);
+      const row = Math.floor(i / per);
+      const col = i % per;
+      const cnt = Math.min(per, n - row * per);
+      const pad = 14;
+      const cell = capOf(g, n);
+      const mid = (g.by1 + g.by2) / 2;
+      const x = pad + (g.w - pad * 2) * ((col + 0.5) / cnt);
+      const y = mid + (row - (rows - 1) / 2) * (cell * 2 + 10);
+      return {x: clamp(x, r + 6, g.w - r - 6), y: clamp(y, r + 6, g.h - r - 6)};
+    }
+    /* 一环 12 个泡的落点。整环一次算完、缓存起来（一帧里要被问 12 次）：
+       ① 下半圈往外撑一点：标题就在 logo 正下方，正圆的话最底下那排泡正好压着字，
+          被物理顶到字底下去排成一条直线。撑到"刚好从字下面绕过去"就够了，
+          而且只撑下半圈——整圈拉成椭圆会把顶上挤紧、两侧摊开；
+       ② 撑开之后半径沿角变化，按角度均分就不准了（同样的角，撑开处对应的弧更长），
+          所以从正上方一颗一颗按"圆心距 = 两个半径 + 缝"反解角度；
+       ③ 标题那块矩形会啃到环的下缘，蹭到的泡沿半径往外让，而不是往下掉。 */
+    const p = ringPos(i, n, g);
+    let x = p.x, y = p.y;
+    /* 标题那块矩形会啃到环的下缘（尤其是它的两个角），撑开的下半圈不一定躲得干净。
+       蹭到了就沿"从环心射出去"的方向往外让——不能直接往下推：往下推等于把这颗泡
+       从环上摘下来，它和左右邻居之间会凭空多出半颗泡的空档（实测 78px）。
+       沿半径让，泡还在自己那条射线上，只是整圈在那儿鼓一下，看着是绕开了标题。 */
+    for (let it = 0; it < 6; it++){
+      const qx = clamp(x, g.nx1, g.nx2), qy = clamp(y, g.ny1, g.ny2);
+      const d = Math.hypot(x - qx, y - qy);
+      if (d >= r + 5) break;
+      const dx = x - g.cx, dy = y - g.ly, len = Math.hypot(dx, dy) || 1;
+      const push = r + 5 - d + 1;
+      x += dx / len * push;
+      y += dy / len * push;
+    }
+    return {
+      x: clamp(x, r + 8, g.w - r - 8),
+      y: clamp(y, r + 8, g.h - r - 8),
+    };
+  }
+
+  function place(){
+    for (const b of nodes){
+      b.el.style.transform =
+        `translate3d(${(b.x - b.r).toFixed(1)}px,${(b.y - b.r).toFixed(1)}px,0)`;
+    }
+  }
+
+  function step(dt, now){
+    const g = geo, K = 1.6, DAMP = 0.9, WANDER = g.band ? 34 : 70;
+
+    for (const b of nodes){
+      b.vx += (b.hx - b.x) * K * dt + Math.cos(now * 0.0015 + b.ph) * WANDER * dt;
+      b.vy += (b.hy - b.y) * K * dt + Math.sin(now * 0.0012 + b.ph * 1.7) * WANDER * dt;
+      const k = Math.exp(-DAMP * dt);     // 指数阻尼：帧率变了手感也不变
+      b.vx *= k; b.vy *= k;
+      b.x += b.vx * dt; b.y += b.vy * dt;
+    }
+
+    const pad = 6;
+    for (const b of nodes){
+      if (b.x < b.r + pad){ b.x = b.r + pad; b.vx = Math.abs(b.vx) * 0.72; }
+      else if (b.x > g.w - b.r - pad){ b.x = g.w - b.r - pad; b.vx = -Math.abs(b.vx) * 0.72; }
+      const top = g.band ? g.by1 : pad, bot = g.band ? g.by2 : g.h - pad;
+      if (b.y < b.r + top){ b.y = b.r + top; b.vy = Math.abs(b.vy) * 0.72; }
+      else if (b.y > bot - b.r){ b.y = bot - b.r; b.vy = -Math.abs(b.vy) * 0.72; }
+
+      // logo 是一堵圆墙
+      let dx = b.x - g.cx, dy = b.y - g.cy, d = Math.hypot(dx, dy) || 1;
+      const minD = g.R + b.r + 5;
+      if (d < minD){
+        const nx = dx / d, ny = dy / d;
+        b.x = g.cx + nx * minD; b.y = g.cy + ny * minD;
+        const vn = b.vx * nx + b.vy * ny;
+        if (vn < 0){ b.vx -= 1.4 * vn * nx; b.vy -= 1.4 * vn * ny; }
+      }
+
+      // 下面那行字也是一堵墙（矩形）
+      const qx = clamp(b.x, g.nx1, g.nx2), qy = clamp(b.y, g.ny1, g.ny2);
+      dx = b.x - qx; dy = b.y - qy; d = Math.hypot(dx, dy);
+      const gap = b.r + 5;
+      if (d < gap){
+        let nx, ny, push;
+        if (d > 0.5){ nx = dx / d; ny = dy / d; push = gap - d; }
+        else {
+          // 圆心已经落到字框里：往最近的一条边顶出去。
+          // 这里若按"法线朝上"处理，会把气泡顶进 logo 和字之间，越挤越上。
+          const dl = b.x - g.nx1, dr = g.nx2 - b.x, dt = b.y - g.ny1, db = g.ny2 - b.y;
+          const m = Math.min(dl, dr, dt, db);
+          if (m === db){ nx = 0; ny = 1; push = db + gap; }
+          else if (m === dt){ nx = 0; ny = -1; push = dt + gap; }
+          else if (m === dr){ nx = 1; ny = 0; push = dr + gap; }
+          else { nx = -1; ny = 0; push = dl + gap; }
+        }
+        b.x += nx * push; b.y += ny * push;
+        const vn = b.vx * nx + b.vy * ny;
+        if (vn < 0){ b.vx -= 1.35 * vn * nx; b.vy -= 1.35 * vn * ny; }
+      }
+    }
+
+    // 两两碰撞：先按质量分开，再沿法线给冲量（恢复系数 0.9，弹起来才像玻璃球）
+    for (let pass = 0; pass < 3; pass++){
+      for (let i = 0; i < nodes.length; i++){
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++){
+          const b = nodes[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const d = Math.hypot(dx, dy) || 0.01;
+          const min = a.r + b.r + 1.5;
+          if (d >= min) continue;
+          const nx = dx / d, ny = dy / d, ov = min - d;
+          const wa = b.mass / (a.mass + b.mass), wb = a.mass / (a.mass + b.mass);
+          a.x -= nx * ov * wa; a.y -= ny * ov * wa;
+          b.x += nx * ov * wb; b.y += ny * ov * wb;
+          const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (vn < 0){
+            const jm = -(1 + 0.9) * vn / (1 / a.mass + 1 / b.mass);
+            a.vx -= jm * nx / a.mass; a.vy -= jm * ny / a.mass;
+            b.vx += jm * nx / b.mass; b.vy += jm * ny / b.mass;
+          }
+        }
+      }
+    }
+  }
+
+  /* 看门狗：无头环境 / 后台标签页里 rAF 可能不推进，光靠它气泡会僵在原地。
+     250ms 没有新帧就用定时器自己走一步（真浏览器里这条基本不触发）。 */
+  setInterval(() => {
+    if (!running) return;
+    const now = performance.now();
+    if (now - last > 24){          // rAF 正常时这条不会成立（16.7ms 一帧）
+      const dt = Math.min(0.03, Math.max(0.008, (now - last) / 1000));
+      last = now; step(dt, now); place();
+    }
+  }, 16);
+
+  let lastCheck = 0;
+  function frame(now){
+    if (!running) return;
+    const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
+    last = now;
+    step(dt, now);
+    place();
+    if (now - lastCheck > 600){ lastCheck = now; relayout(); }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function winkOn(){
+    if (winking) return;
+    winking = true;
+    document.body.classList.add('winking');
+    mark.classList.add('wink');
+  }
+  function winkOff(){
+    winking = false;
+    document.body.classList.remove('winking');
+    mark.classList.remove('wink');
+  }
+
+  function makeNode(lab, i, n){
+    const r = radiusOf(lab.rank || i + 1, n, geo);
+    const h = homeOf(i, n, geo, r);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bubw';
+    wrap.style.width = wrap.style.height = (r * 2).toFixed(1) + 'px';
+
+    const pop = document.createElement('div');
+    pop.className = 'pop';
+    pop.style.setProperty('--d', (i * 55) + 'ms');
+
+    const a = document.createElement('a');
+    a.className = 'bub';
+    a.href = '/lab?id=' + encodeURIComponent(lab.lab_id) + '&from=home';
+    a.title = lab.count > 0 ? `${lab.name}｜今日被咨询 ${lab.count} 次` : lab.name;
+    a.setAttribute('aria-label',
+      `今日热门第 ${lab.rank || i + 1} 名：${lab.name}，打开实验室档案`);
+
+    pop.appendChild(a);
+    wrap.appendChild(pop);
+
+    a.addEventListener('click', ev => {
+      if (winking){ ev.preventDefault(); return; }
+      // 按住 Ctrl/⌘ 是想在新标签页开，那就别拦、也别眨眼
+      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      winkOn();
+      a.classList.add('going');
+      ev.preventDefault();
+      const href = a.href;
+      // 先让"眨眼"被看见，再走：直接跳走的话这张图永远来不及出现
+      setTimeout(() => { location.href = href; }, reduce ? 0 : 620);
+    });
+
+    return {
+      el: wrap, a, name: lab.name, rank: lab.rank || i + 1,
+      r, mass: r * r, x: h.x, y: h.y, hx: h.x, hy: h.y,
+      vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+      ph: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function label(n){
+    let fs = Math.max(8, Math.min(13.2, n.r * 0.30));
+    // 一个长英文词放不下时，宁可把字缩一点也别拆词（"RoboMaster" 拆开就不叫名字了）
+    const room = n.r * 1.46 * 0.92;       // 留点余量：卡着边量，浏览器进位一两像素就换行了
+    const widest = Math.max(0, ...tokens(n.name).map(t => widthOf(t, fs)));
+    if (widest > room) fs = Math.max(8, fs * room / widest);
+    n.a.style.fontSize = fs.toFixed(1) + 'px';
+    n.a.textContent = '';
+    // 小气泡塞不下字就别塞：留一个干净的玻璃球，名字交给 hover 的 title。
+    // 手机上的泡只有桌面的六成，门槛得跟着降，不然一整排都是空泡。
+    const minR = geo.band ? 17 : 24;
+    if (n.r >= minR){
+      const lines = wrapName(n.name, n.r * 1.46, fs, n.r >= (geo.band ? 22 : 32) ? 2 : 1);
+      for (const t of lines){
+        const sp = document.createElement('span');
+        sp.textContent = t;
+        n.a.appendChild(sp);
+      }
+    }
+    n.el.style.width = n.el.style.height = (n.r * 2).toFixed(1) + 'px';
+  }
+
+  /* 版心尺寸会变（窗口缩放、无头浏览器截图前才给的视口、字体换挡），
+     而落点是按版心算的：不重算就会出现"气泡比字高出一截"的错位。 */
+  function relayout(){
+    if (!nodes.length) return;
+    const before = geo;
+    geo = geometry();
+    if (before && Math.abs(before.cy - geo.cy) < 1 && Math.abs(before.R - geo.R) < 1
+        && Math.abs(before.w - geo.w) < 1 && Math.abs(before.h - geo.h) < 1) return;
+    nodes.forEach((n, i) => {
+      n.r = radiusOf(n.rank, nodes.length, geo);
+      n.mass = n.r * n.r;
+      label(n);
+      const h = homeOf(i, nodes.length, geo, n.r);
+      n.hx = h.x; n.hy = h.y;
+      if (STILL || reduce){ n.x = h.x; n.y = h.y; }   // 不跑物理就照新落点摆
+      n.x = clamp(n.x, n.r + 6, geo.w - n.r - 6);
+      n.y = clamp(n.y, n.r + 6, geo.h - n.r - 6);
+    });
+    if (STILL || reduce){ for (let i = 0; i < 40; i++) step(0, 0); }
+    place();
+  }
+
+  function start(){
+    if (built || !nodes.length) return;
+    built = true;
+    layer.classList.toggle('still', STILL);   // 截图模式：直接摆在落点上，不播入场
+    for (const n of nodes){ label(n); layer.appendChild(n.el); }
+    // 静止时要一次把重叠推开：动起来以后每帧都会纠，截图上只有这一帧
+    if (STILL){ for (let i = 0; i < 40; i++) step(0, 0); }
+    place();
+    // 版心可能还没定下来（字体、滚动条、无头视口），过一会儿再对一次。
+    // ResizeObserver 比 resize 事件可靠：无头截图是"给完尺寸就拍"，不派发 resize。
+    setTimeout(relayout, 260);
+    if (window.ResizeObserver) new ResizeObserver(() => relayout()).observe(stage);
+    // 静止模式没有逐帧循环，只能自己盯一会儿：截图工具是"加载完才给最终视口"，
+    // 而 ResizeObserver 的回调不保证在出图前送达。5 秒内每 150ms 校一次，够用了。
+    if (STILL){
+      const poll = setInterval(relayout, 150);
+      setTimeout(() => clearInterval(poll), 5000);
+    }
+    addEventListener('load', () => setTimeout(relayout, 40));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => relayout());
+    if (STILL || reduce) return;
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  async function boot(){
+    if (loading || built) return;
+    loading = true;
+    let labs = [];
+    try{
+      const r = await fetch('/api/hotlabs', {cache: 'no-store'});
+      labs = ((await r.json()).labs || []).slice(0, N);
+    }catch(e){ labs = []; }
+    if (!labs.length) return;
+    geo = geometry();
+    document.body.dataset.geo = JSON.stringify(geo);   // 截图/排障用：一眼看出落点算在哪
+    nodes = labs.map((lab, i) => makeNode(lab, i, labs.length));
+    // 尺寸/字体都上完再量一次宽度，否则圆里那段文字会按 0 宽算
+    start();
+  }
+
+  /* 粒子动画落定才出场；万一动画没跑完（后台标签页、无头），也得到点东西 */
+  function kick(){
+    if (built || loading) return;
+    if (document.body.dataset.settled === '1') setTimeout(boot, 80);
+    else document.addEventListener('stage:settled', () => setTimeout(boot, 80), {once: true});
+    setTimeout(boot, 4000);
+  }
+  kick();
+
+  let rt = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(relayout, 180);
+  });
+
+  // 从档案页后退回来：猫要眨回去，动画也接着跑
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    winkOff();
+    if (!reduce && !STILL && !running && nodes.length){
+      running = true; last = performance.now(); raf = requestAnimationFrame(frame);
+    }
+  });
+})();
+</script>
+</body>
+</html>

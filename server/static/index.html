@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实验室推荐 · 学生端</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e5e7eb; --ink:#15181d; --sub:#5f6773;
+    --accent:#2f6fed; --soft:#eaf1ff; --warn:#8a5a00; --warnbg:#fff6e6;
+    --ok:#1a7f4b; --okbg:#e9f7ef; --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;overflow:hidden}          /* 页面本身不滚 */
+  body{background:var(--bg);color:var(--ink);display:flex;flex-direction:column;
+    font:14.5px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+
+  /* 顶部通道条：只说"我在哪"和"能去哪"。
+     学生端只通向主页和档案页，没有教师端的入口——两端隔断是产品规则，不是漏做。 */
+  .appbar{flex:0 0 46px;display:flex;align-items:center;gap:9px;padding:0 16px;
+    background:#fff;border-bottom:1px solid var(--line);font-size:12.5px;
+    color:var(--sub);position:relative;z-index:30}
+  /* 顶栏只放"另一个页面"的入口，一个页面一个按钮，且都是方框——
+     之前左边是无框文字、右边是彩色文字，同一件事两种长相，看着像两套系统 */
+  .appbar .navbtn{display:inline-flex;align-items:center;gap:5px;color:#4b5563;
+    text-decoration:none;padding:5px 12px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;font-weight:600;font-size:12.5px;line-height:1.45;transition:.15s}
+  .appbar .navbtn:hover{border-color:#cfd8e6;color:var(--ink);background:#fafbfd}
+  .appbar .brand{color:#5f6773;margin-left:3px;font-weight:600}
+  .appbar .who{padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;
+    letter-spacing:.3px;background:var(--soft);color:var(--accent);margin-left:2px}
+  .appbar .grow{flex:1}
+  @media(max-width:760px){.appbar .brand{display:none}}
+
+  .app{display:grid;
+    /* B 布局：18% : 32% : 50%，用 fr 保持比例，minmax 兜住窄屏可用性 */
+    grid-template-columns:minmax(176px,18fr) minmax(300px,32fr) minmax(400px,50fr);
+    flex:1 1 auto;min-height:0;overflow:hidden}
+  @media(max-width:1240px){.app{grid-template-columns:minmax(150px,16fr) minmax(280px,30fr) minmax(360px,54fr)}}
+  @media(max-width:980px){.app{grid-template-columns:1fr}.col-hist,.col-graph{display:none}}
+
+  /* 每栏独立滚动：height:100% + min-height:0 + overflow:auto */
+  .col{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+
+  /* 左：历史 */
+  .col-hist{background:#fbfcfd;border-right:1px solid var(--line)}
+  .hist-h{padding:13px 14px 7px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.4px;flex:0 0 auto}
+  .hist-list{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 8px 10px}
+  .hist-item{padding:8px 9px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--sub);
+    display:flex;gap:7px;align-items:flex-start;line-height:1.45;margin-bottom:2px}
+  .hist-item:hover{background:#eef1f5}
+  .hist-item.on{background:var(--soft);color:#1c4fae}
+  .hist-item .fm{flex:0 0 auto;font-size:10px;padding:1px 5px;border-radius:5px;background:#e8ebf0;color:#4b5563}
+  .hist-item.on .fm{background:#cfdffd;color:#1c4fae}
+  .hist-item span.t{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .hist-empty{padding:8px 6px;color:#9aa1ab;font-size:12.5px}
+  .hist-f{padding:9px 14px;border-top:1px solid var(--line);font-size:11.5px;color:#9aa1ab;flex:0 0 auto}
+
+  /* 中：流程图 */
+  .col-graph{background:#fbfcfd;border-right:1px solid var(--line)}
+  .graph-h{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+    align-items:baseline;flex:0 0 auto}
+  .graph-h b{font-size:12.5px;letter-spacing:.4px}
+  .graph-h span{font-size:11.5px;color:#9aa1ab}
+  .graph-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 10px 16px}
+  .graph-body svg{display:block;width:100%;height:auto}
+  .graph-legend{display:flex;gap:12px;justify-content:center;font-size:11px;color:#9aa1ab;
+    padding:0 0 8px;flex:0 0 auto;flex-wrap:wrap}
+  .graph-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;
+    border:1.4px solid #d6dae1;vertical-align:-1px;background:#fbfcfd}
+  .graph-legend i.a{border-color:#2f6fed;background:#eaf1ff}
+  .graph-legend i.d{border-color:#2f6fed;border-width:2px;background:#eef4ff}
+
+  /* SVG 节点：每种类型一个暖色调；未到达时是极淡的同色 */
+  .nd{--f:#fbfcfd;--s:#d6dae1;--fa:#eaf1ff;--sa:#2f6fed}
+  .nd.t-in    {--f:#fdf6ea;--s:#e8d3b4;--fa:#fae0bb;--sa:#c98934}
+  .nd.t-ext   {--f:#fdf0e4;--s:#efcbaf;--fa:#fad8bd;--sa:#cd8340}
+  .nd.t-dia   {--f:#fdf3e3;--s:#e9c79a;--fa:#fbdfae;--sa:#c8871f}
+  .nd.t-ask   {--f:#fdeff1;--s:#eec2c9;--fa:#f9d2d9;--sa:#c4677a}
+  .nd.t-fb    {--f:#f5effb;--s:#cdb9e6;--fa:#e5d5f7;--sa:#8b68bd}
+  .nd.t-ret   {--f:#eaf5f3;--s:#b2d6cf;--fa:#ccebe4;--sa:#4a9c8f}
+  .nd.t-score {--f:#f0f8ea;--s:#c2d9b3;--fa:#dcefd0;--sa:#6a9f49}
+  .nd.t-reason{--f:#eef2fb;--s:#bac7e6;--fa:#d8e2f8;--sa:#5b7fc4}
+  .nd.t-f1    {--f:#e9f6ee;--s:#a9d3b8;--fa:#cfeedd;--sa:#479a67}
+  .nd.t-nm    {--f:#fdf6e3;--s:#e3cd94;--fa:#f9e5b4;--sa:#b8933a}
+  .nd.t-out   {--f:#fdeee0;--s:#e8bb95;--fa:#f9d7b4;--sa:#c07a35}
+
+  .nd rect,.nd polygon{fill:var(--f);stroke:var(--s);stroke-width:1.4;transition:.22s}
+  .nd text{fill:#8b8178;font-size:11.5px;font-family:inherit;transition:.22s}
+
+  .nd.active rect,.nd.active polygon{fill:var(--fa);stroke:var(--sa);stroke-width:1.9;
+    filter:drop-shadow(0 0 5px rgba(200,130,50,.35))}
+  .nd.active text{fill:#4a3f36;font-weight:600}
+
+  .nd.done rect,.nd.done polygon{fill:var(--fa);stroke:var(--sa);stroke-width:2.3}
+  .nd.done text{fill:#33291f;font-weight:600}
+
+  .nd.skip{opacity:.32;filter:grayscale(.55)}
+  .edge{fill:none;stroke:#b9c0cb;stroke-width:1.3;marker-end:url(#arrow)}
+  .edge.on{stroke:#2f6fed;stroke-width:1.8;marker-end:url(#arrowOn)}
+  .elab{fill:#8a919c;font-size:10px;font-family:inherit}
+
+  /* 右：聊天 */
+  .col-chat{background:var(--bg)}
+  .chat-h{padding:12px 20px;border-bottom:1px solid var(--line);background:#fff;display:flex;
+    align-items:center;gap:10px;flex:0 0 auto}
+  .chat-h img{width:26px;height:26px;border-radius:8px;object-fit:cover}
+  .chat-h b{font-size:14px}
+  .chat-h span{font-size:12px;color:var(--sub)}
+  .chat{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 20px 6px;display:flex;
+    flex-direction:column;gap:15px}
+  .row{display:flex;gap:9px;align-items:flex-start}
+  .row.me{flex-direction:row-reverse}
+  .ava{flex:0 0 32px;width:32px;height:32px;border-radius:10px;object-fit:cover;
+    border:1px solid var(--line);background:#fff}
+  .row.me .ava{display:grid;place-items:center;background:#4b5563;color:#fff;font-size:12px;
+    font-weight:600;border:0}
+  .bub{max-width:min(640px,90%);background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:12px 15px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .row.me .bub{background:var(--soft);border-color:#d3e2ff}
+
+  .card{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:11px;background:#fff}
+  .card h4{margin:0 0 3px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .rank{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700}
+  .tag{font-size:11px;padding:1px 7px;border-radius:20px;background:#eef1f5;color:var(--sub);font-weight:500}
+  .tag.dual{background:#eaf1ff;color:#2f6fed}.tag.res{background:#e9f7ef;color:#1a7f4b}
+  .tag.comp{background:#fff1e8;color:#b25000}
+  .lead{font-size:13.5px;color:#3d4552;margin:6px 0 0;min-height:1.4em}
+  .lead.typing:after{content:"▍";color:var(--accent);animation:bl .9s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+  .sec{margin-top:10px;font-size:13px;color:var(--sub)}
+  .sec b{color:var(--ink);font-weight:600;font-size:12.5px;display:block;margin-bottom:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:11.5px;background:#f1f3f6;color:#4b5563;padding:2px 8px;border-radius:6px}
+  .kv{display:grid;grid-template-columns:62px 1fr;gap:2px 8px;font-size:12.5px;margin:0}
+  .kv dt{color:#98a0ab}.kv dd{margin:0;color:#3d4552}
+  details.why{margin-top:9px}
+  details.why summary{cursor:pointer;font-size:12px;color:var(--accent);list-style:none}
+  details.why summary::-webkit-details-marker{display:none}
+  details.why summary:before{content:"▸ "}
+  /* 卡片底部：跳到独立档案页。长内容不该靠聊天气泡承载 */
+  .card-foot{margin-top:11px;padding-top:9px;border-top:1px solid #f0f2f5}
+  .card-foot a{font-size:12px;color:var(--accent);text-decoration:none}
+  .card-foot a:hover{text-decoration:underline}
+  details.why[open] summary:before{content:"▾ "}
+  .why-body{margin-top:7px;font-size:12.5px;color:var(--sub);background:#fafbfc;border:1px solid var(--line);
+    border-radius:8px;padding:9px 11px;line-height:1.8}
+
+  /* 对比表 */
+  .cmp-wrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:10px}
+  /* 固定布局 + 首列定宽：剩下的宽度由各实验室列**均分**，
+     否则浏览器会按内容宽窄分配，导致有的室宽、有的室窄 */
+  table.cmp{border-collapse:collapse;width:100%;font-size:13px;min-width:420px;table-layout:fixed}
+  table.cmp col.cmp-label{width:88px}
+  table.cmp th,table.cmp td{padding:9px 11px;border-bottom:1px solid var(--line);
+    vertical-align:top;text-align:left}
+  table.cmp thead th{background:#fafbfc;font-size:13px;font-weight:600;position:sticky;top:0}
+  table.cmp tbody th{background:#fcfcfd;color:var(--sub);font-weight:500;width:88px;white-space:nowrap}
+  table.cmp tr:last-child th,table.cmp tr:last-child td{border-bottom:0}
+  table.cmp td{color:#3d4552}
+  table.cmp td .chip{font-size:11px;margin:0 3px 3px 0;display:inline-block}
+  /* 三列时收紧排版，保证三栏都能看见（不靠横向滚动） */
+  table.cmp.cmp-multi th,table.cmp.cmp-multi td{padding:8px 9px}
+  table.cmp.cmp-multi td .chip{font-size:10.5px;padding:1px 6px;margin:0 2px 2px 0}
+  table.cmp.cmp-multi tbody th{width:74px}
+  table.cmp ul{margin:0;padding-left:15px}
+  table.cmp ul li{margin:1px 0}
+  .cmp-empty{color:#a8aeb8;font-style:normal}
+  .notice{border-radius:11px;padding:10px 13px;font-size:13.5px;margin-top:9px}
+  .notice.warn{background:var(--warnbg);color:var(--warn);border:1px solid #ffe2b8}
+  .notice.info{background:var(--soft);color:#1c4fae;border:1px solid #d3e2ff}
+  .q{font-size:15px;font-weight:500;line-height:1.6}
+  .tail{margin-top:11px;font-size:13px;color:#3d4552}
+  .samples{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .samples button{background:#fff;color:var(--sub);border:1px solid var(--line);border-radius:20px;
+    font:inherit;font-size:12.5px;padding:5px 12px;cursor:pointer}
+  .samples button:hover{border-color:var(--accent);color:var(--accent)}
+  .samples button:disabled{opacity:.5;cursor:default}
+
+  .composer{padding:9px 20px 14px;border-top:1px solid var(--line);background:#fff;flex:0 0 auto}
+  /* 记忆条：把"我记得你什么"明明白白摆在输入框上方，而不是藏在后台 */
+  .mem{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);
+    background:#f7f9fc;border:1px solid #e3e8f0;border-radius:9px;padding:6px 9px;margin-bottom:7px}
+  .mem[hidden]{display:none}
+  .mem b{flex:0 0 auto;font-size:10.5px;font-weight:600;color:#2f6fed;background:#eaf1ff;
+    padding:1px 6px;border-radius:5px;letter-spacing:.3px}
+  .mem .t{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3d4552}
+  .mem .t i{font-style:normal;color:#9aa1ab}
+  .mem button{flex:0 0 auto;border:0;background:none;color:#9aa1ab;font:inherit;font-size:11.5px;
+    padding:2px 0 2px 4px;cursor:pointer}
+  .mem button:hover{color:#c0392b}
+  /* "这句是凭记忆答的"——放在气泡顶部，跟推荐结果同一屏 */
+  .recall{font-size:11.8px;color:#7a6234;background:#fdf7ea;border:1px solid #f0e2c6;
+    border-radius:8px;padding:5px 9px;margin-bottom:9px}
+  .recall b{color:#5d4a24;font-weight:600}
+  .box{display:flex;gap:9px;align-items:flex-end;border:1px solid var(--line);border-radius:13px;
+    padding:7px 7px 7px 13px;background:#fff}
+  .box:focus-within{border-color:#b9cffb;box-shadow:0 0 0 3px rgba(47,111,237,.08)}
+  textarea{flex:1;border:0;outline:0;resize:none;font:inherit;padding:6px 0;max-height:90px;background:transparent}
+  .send{border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-weight:600;
+    padding:8px 16px;cursor:pointer}
+  .send:disabled{opacity:.45;cursor:default}
+  .hint{margin:5px 2px 0;font-size:11.5px;color:#9aa1ab}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <a class="navbtn" href="/" title="回到主页，换一条通道">← 主页</a>
+  <span class="brand">实验室小助手</span>
+  <span class="who">学生端</span>
+  <span class="grow"></span>
+  <a class="navbtn" href="/lab?from=student">实验室档案 →</a>
+</header>
+<div class="app">
+
+  <aside class="col col-hist">
+    <div class="hist-h">对话历史</div>
+    <div class="hist-list" id="hist"><div class="hist-empty">还没有对话</div></div>
+    <div class="hist-f">本页内保存；方向偏好会被记住，可随时清除</div>
+  </aside>
+
+  <section class="col col-graph">
+    <div class="graph-h"><b>Agent 编排</b><span id="g-status">待输入</span></div>
+    <div class="graph-legend">
+      <span><i></i>待执行</span><span><i class="a"></i>进行中</span><span><i class="d"></i>已完成</span>
+    </div>
+    <div class="graph-body">
+      <svg viewBox="0 0 400 830" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+            <path d="M0,0 L7,3.2 L0,6.4 z" fill="#b9c0cb"/>
+          </marker>
+          <marker id="arrowOn" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+            <path d="M0,0 L7,3.2 L0,6.4 z" fill="#2f6fed"/>
+          </marker>
+        </defs>
+
+        <!-- 边（先画，压在节点下） -->
+        <path class="edge" id="e-in-ext"     d="M200,52 V72"/>
+        <path class="edge" id="e-ext-dir"    d="M200,108 V126"/>
+        <!-- 菱形左右顶点出发，不再从内部起笔 -->
+        <path class="edge" id="e-dir-ask"    d="M90,178 V244"/>
+        <path class="edge" id="e-dir-ret"    d="M310,178 V244"/>
+        <path class="edge" id="e-ask-ret"    d="M150,268 H240" stroke-dasharray="4 3"/>
+        <path class="edge" id="e-ask-fb"     d="M90,292 V318"/>
+        <path class="edge" id="e-ret-score"  d="M300,292 V318"/>
+        <path class="edge" id="e-score-cand" d="M300,354 V368"/>
+        <path class="edge" id="e-cand-reason" d="M300,516 V536"/>
+        <path class="edge" id="e-cand-nomatch" d="M200,442 H90 V470"/>
+        <path class="edge" id="e-reason-f1"  d="M300,590 V608"/>
+        <path class="edge" id="e-f1-out"     d="M300,644 V700 H225 V742"/>
+        <path class="edge" id="e-fb-out"     d="M90,372 V392 H16 V760 H150"/>
+        <path class="edge" id="e-nm-out"     d="M90,506 V760 H150"/>
+
+        <!-- 节点 -->
+        <g class="nd t-in" id="n-in" data-t="t-in">
+          <rect x="120" y="16" width="160" height="36" rx="6"/>
+          <text x="200" y="39" text-anchor="middle">用户输入</text>
+        </g>
+        <g class="nd t-ext" id="n-ext" data-t="t-ext">
+          <rect x="120" y="72" width="160" height="36" rx="6"/>
+          <text x="200" y="95" text-anchor="middle">槽位抽取</text>
+        </g>
+        <g class="nd t-dia" id="n-dir" data-t="t-dia">
+          <polygon points="200,126 310,178 200,230 90,178"/>
+          <text x="200" y="182" text-anchor="middle">拿到方向了吗</text>
+        </g>
+        <g class="nd t-ask" id="n-ask" data-t="t-ask">
+          <rect x="30" y="244" width="120" height="48" rx="6"/>
+          <text x="90" y="264" text-anchor="middle">追问</text>
+          <text x="90" y="281" text-anchor="middle" style="font-size:10px">（一次，只问方向）</text>
+        </g>
+        <g class="nd t-fb" id="n-fb" data-t="t-fb">
+          <rect x="30" y="318" width="120" height="54" rx="6"/>
+          <text x="90" y="340" text-anchor="middle">形态④</text>
+          <text x="90" y="357" text-anchor="middle" style="font-size:10px">规则兜底（豁免门禁）</text>
+        </g>
+        <g class="nd t-ret" id="n-ret" data-t="t-ret">
+          <rect x="240" y="244" width="120" height="48" rx="6"/>
+          <text x="300" y="264" text-anchor="middle">混合检索</text>
+          <text x="300" y="281" text-anchor="middle" style="font-size:10px">向量 + BM25 → RRF</text>
+        </g>
+        <g class="nd t-score" id="n-score" data-t="t-score">
+          <rect x="240" y="318" width="120" height="36" rx="6"/>
+          <text x="300" y="341" text-anchor="middle">规则打分</text>
+        </g>
+        <g class="nd t-dia" id="n-cand" data-t="t-dia">
+          <polygon points="300,368 400,442 300,516 200,442"/>
+          <text x="300" y="438" text-anchor="middle">有达标候选吗</text>
+          <text x="300" y="454" text-anchor="middle" style="font-size:10px">方向&gt;0 且 ≥0.35</text>
+        </g>
+        <g class="nd t-nm" id="n-nm" data-t="t-nm">
+          <rect x="30" y="470" width="120" height="36" rx="6"/>
+          <text x="90" y="493" text-anchor="middle">形态②/③</text>
+        </g>
+        <g class="nd t-reason" id="n-reason" data-t="t-reason">
+          <rect x="240" y="536" width="120" height="54" rx="6"/>
+          <text x="300" y="558" text-anchor="middle">理由生成</text>
+          <text x="300" y="575" text-anchor="middle" style="font-size:10px">含名称/方向校验</text>
+        </g>
+        <g class="nd t-f1" id="n-f1" data-t="t-f1">
+          <rect x="240" y="608" width="120" height="36" rx="6"/>
+          <text x="300" y="631" text-anchor="middle">形态① 正常推荐</text>
+        </g>
+        <g class="nd t-out" id="n-out" data-t="t-out">
+          <rect x="150" y="742" width="150" height="40" rx="6"/>
+          <text x="225" y="767" text-anchor="middle">返回结果给学生</text>
+        </g>
+
+        <!-- 分支标注 -->
+        <text class="elab" x="70" y="200">否</text>
+        <text class="elab" x="316" y="200">是</text>
+        <text class="elab" x="96" y="310">仍缺方向</text>
+        <text class="elab" x="176" y="262">补上了</text>
+        <text class="elab" x="308" y="532">是</text>
+        <text class="elab" x="146" y="434">否</text>
+      </svg>
+    </div>
+  </section>
+
+  <main class="col col-chat">
+    <div class="chat-h">
+      <img src="/static/avatar.png" alt="">
+      <b>实验室推荐助手</b><span>说说你想做什么，我帮你找对得上的实验室</span>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="composer">
+      <div class="mem" id="mem" hidden>
+        <b>记忆</b><span class="t" id="mem-txt"></span>
+        <button id="mem-clr" type="button" title="删掉这条记录，之后按新同学对待">清除</button>
+      </div>
+      <div class="box">
+        <textarea id="input" rows="1" placeholder="例如：我想做视觉算法，想打比赛，大一"></textarea>
+        <button class="send" id="send">发送</button>
+      </div>
+      <p class="hint">Enter 发送 · Shift+Enter 换行</p>
+    </div>
+  </main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const chat=$('chat'), input=$('input'), sendBtn=$('send'), hist=$('hist');
+const gstatus=$('g-status');
+const NODES=['in','ext','dir','ask','fb','ret','score','cand','nm','reason','f1','out'];
+let history=null, busy=false, reqSeq=0, histItems=[];
+
+/* ---------- 身份与记忆 ----------
+   sid 一般由服务端 Cookie 携带；?sid= 供截图/多设备演示指定一个已有身份。
+   ?fresh=1 表示"当新同学"：不读也不写记忆（UI 回归测试用，保证跑多少次结果一样）。 */
+const QS0=new URLSearchParams(location.search);
+let SID=QS0.get('sid')||'';
+const FRESH=QS0.get('fresh')==='1';
+let mem={exists:false};
+
+/* 开场白要等记忆读完。用一个显式 Promise 而不是 DOM 事件：
+   ?ask= 与 ?auto= 的回放必须排在问候之后，否则第一条提问会跑到开场白上面。 */
+let bootResolve;
+const booted=new Promise(r=>{ bootResolve=r; });
+
+function qWith(obj){
+  const q=new URLSearchParams(obj||{});
+  if(SID) q.set('sid',SID);
+  if(FRESH) q.set('fresh','1');
+  return q;
+}
+
+function paintMem(){
+  const bar=$('mem');
+  if(FRESH||!mem||!mem.exists||!mem.profile){ bar.hidden=true; return; }
+  bar.hidden=false;
+  const times=mem.visits>1?`<i>· 第 ${mem.visits} 次来</i>`:'';
+  $('mem-txt').innerHTML=`${esc(mem.profile)} ${times}`;
+}
+
+async function loadMem(){
+  if(FRESH) return mem;
+  try{
+    const r=await fetch('/api/memory'+(SID?('?sid='+encodeURIComponent(SID)):''));
+    mem=await r.json();
+  }catch(e){ }
+  paintMem();
+  return mem;
+}
+
+async function clearMem(){
+  try{
+    const r=await fetch('/api/memory/clear'+(SID?('?sid='+encodeURIComponent(SID)):''),{method:'POST'});
+    const d=await r.json();
+    if(d&&d.sid) SID=d.sid;          // 换新身份，老的串已经没数据了
+  }catch(e){ }
+  mem={exists:false}; history=null; paintMem();
+  const b=addBot();
+  b.innerHTML=`<div class="q">已经清掉了。</div>
+    <div style="font-size:13.5px;color:#5f6773;margin-top:4px">
+      我不再记得你之前的描述。重新说说你想做什么方向就行。</div>`;
+  scrollChat();
+  saveChat();   // 缓存跟着当前画面走，别让"清掉了"之后回来又看到旧画像
+}
+
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tagCls=pt=>pt==='双主导'?'tag dual':pt==='科研主导'?'tag res':pt==='竞赛主导'?'tag comp':'tag';
+const scrollChat=()=>{ chat.scrollTop=chat.scrollHeight; };
+
+/* ---------- 离开页面再回来，对话还在 ----------
+   档案页是同一个 tab 打开的：看完档案点「回到对话」，如果对话被清空，
+   学生会以为"刚才白说了"。所以离开前把这一段存进 sessionStorage（只在这个标签页有效，
+   关掉就没了），回来原样贴回去——这不算长期记忆，长期的那份在服务端 data/students/。 */
+const SKEY='lr-chat';
+function saveChat(){
+  if(FRESH) return;
+  try{ sessionStorage.setItem(SKEY, JSON.stringify({h:history, items:histItems, html:chat.innerHTML})); }
+  catch(e){ /* 隐私模式写不进去就不存，功能照样能用 */ }
+}
+function restoreChat(){
+  if(FRESH) return false;
+  let d=null;
+  try{ d=JSON.parse(sessionStorage.getItem(SKEY)||'null'); }catch(e){ return false; }
+  if(!d || !d.html) return false;
+  history=d.h||null;
+  histItems=d.items||[];
+  chat.innerHTML=d.html;
+  if(histItems.length){
+    hist.innerHTML='';
+    // 与原逻辑一致：最新的在最上面，全部高亮
+    histItems.slice().reverse().forEach(it=>{
+      const el=document.createElement('div'); el.className='hist-item on';
+      el.innerHTML=`<span class="fm">${esc(it.form)}</span><span class="t">${esc(it.text)}</span>`;
+      el.onclick=()=>{document.querySelectorAll('.hist-item').forEach(x=>x.classList.remove('on'));el.classList.add('on');};
+      hist.appendChild(el);
+    });
+  }
+  document.querySelectorAll('.lead.typing').forEach(e=>e.classList.remove('typing'));
+  scrollChat();
+  return true;
+}
+
+/* ---------- 历史 ---------- */
+function pushHist(text){
+  const i=histItems.length+1; histItems.push({i,text,form:'…'});
+  if(histItems.length===1) hist.innerHTML='';
+  const d=document.createElement('div'); d.className='hist-item on';
+  d.innerHTML=`<span class="fm">…</span><span class="t">${esc(text)}</span>`;
+  d.onclick=()=>{document.querySelectorAll('.hist-item').forEach(x=>x.classList.remove('on'));d.classList.add('on');};
+  hist.prepend(d);
+}
+function markLastHist(form){
+  const first=hist.querySelector('.hist-item');
+  if(first&&histItems.length){ histItems[histItems.length-1].form=form; first.querySelector('.fm').textContent=form||'—'; }
+}
+
+/* ---------- 流程图 ---------- */
+function setState(n,state){
+  const g=$('n-'+n); if(!g) return;
+  g.setAttribute('class', ('nd '+(g.dataset.t||'')+' '+(state||'')).trim());
+}
+function resetGraph(){
+  NODES.forEach(n=>setState(n,''));
+  document.querySelectorAll('.edge').forEach(e=>e.classList.remove('on'));
+  gstatus.textContent='运行中';
+}
+const act=n=>setState(n,'active');
+const done=n=>setState(n,'done');
+const skip=n=>{ const g=$('n-'+n); if(g && !g.classList.contains('done')) g.classList.add('skip'); };
+function edge(id,on=true){ const e=$(id); if(e) e.classList.toggle('on',on); }
+
+function onStep(s){
+  const st=s.stage, d=s.data||{};
+  if(st==='extract'){ act('in'); act('ext'); }
+  if(st==='extract_done'){
+    const n=Object.keys(d).length;
+    done('in'); done('ext');
+    act('dir');
+    edge('e-in-ext'); edge('e-ext-dir');
+  }
+  if(st==='gate'){
+    done('dir'); act('ask'); edge('e-dir-ask');
+    if((d.missing||[]).length) skip('ret');
+  }
+  if(st==='retrieve'){
+    done('dir'); act('ret'); edge('e-dir-ret'); skip('ask'); skip('fb');
+  }
+  if(st==='retrieve_done'){ done('ret'); act('score'); edge('e-ret-score'); }
+  if(st==='score'){ act('score'); }
+  if(st==='score_done'){
+    const t=d.top5||[]; done('score'); act('cand'); edge('e-score-cand');
+  }
+  if(st==='candidates'){
+    const items=(d.items)||[];
+    const b=addBot();
+    b.insertAdjacentHTML('beforeend',
+      `<div class="notice info">找到 ${items.length} 个匹配的</div>`);
+    items.forEach((t,i)=>{
+      b.insertAdjacentHTML('beforeend',
+        card({...t, reason_text:''}, i, {research_areas:t.research_areas}, {wrapId:'c-'+t.lab_id}));
+    });
+    pending={bubble:b, items};
+    scrollChat();
+  }
+  if(st==='reasons'){ done('cand'); act('reason'); edge('e-cand-reason'); }
+  if(st==='form'){
+    const m=(s.msg||'').match(/[①②③④]/);
+    const f = m ? m[0] : ((s.msg||'').includes('对比') ? '对比'
+              : (s.msg||'').includes('详情') ? '详情' : '?');
+    done('cand');
+    if(f==='①'){
+      done('reason'); edge('e-cand-reason');
+      done('f1'); edge('e-reason-f1'); edge('e-f1-out');
+      skip('fb'); skip('nm');
+    } else if(f==='②' || f==='③'){
+      edge('e-cand-nomatch'); done('nm'); edge('e-nm-out');
+      skip('fb'); skip('reason'); skip('f1');
+    } else if(f==='④'){
+      done('ask'); edge('e-ask-fb'); done('fb'); edge('e-fb-out');
+      skip('ret'); skip('score'); skip('cand'); skip('reason'); skip('f1'); skip('nm');
+    } else if(f==='对比' || f==='详情'){
+      // 这两类在意图层就分流了，不经过检索与打分
+      skip('ask'); skip('ret'); skip('score'); skip('cand');
+      skip('reason'); skip('f1'); skip('nm'); skip('fb');
+    } else {                        // 追问
+      done('ask'); edge('e-dir-ask');
+      skip('ret'); skip('score'); skip('cand'); skip('reason'); skip('f1'); skip('nm'); skip('fb');
+    }
+    done('out');
+    gstatus.textContent='完成 · 形态'+f;
+  }
+}
+
+/* ---------- 聊天 ---------- */
+function addMe(text){
+  const r=document.createElement('div'); r.className='row me';
+  r.innerHTML=`<div class="ava">我</div><div class="bub">${esc(text)}</div>`;
+  chat.appendChild(r); scrollChat();
+}
+function addBot(){
+  const r=document.createElement('div'); r.className='row';
+  r.innerHTML=`<img class="ava" src="/static/avatar.png"><div class="bub"></div>`;
+  chat.appendChild(r); scrollChat(); return r.querySelector('.bub');
+}
+
+const TAIL='还想进一步了解什么呢？比如某个实验室在做什么、大一能不能进、要不要什么基础。';
+
+/* 卡片两档：
+   compact —— 推荐场景：只有 研究方向 + 浓缩简介（学生先扫一遍，不被细节淹没）
+   full    —— 详情场景：简介完整版 + 代表成果 + 基本情况 + 联系方式 */
+function card(t,i,lab,opt){
+  const o=opt||{}; const L=lab||{}; const compact=!o.full;
+  const areas=(L.research_areas||t.research_areas||[]).slice(0,compact?8:12)
+    .map(a=>`<span class="chip">${esc(a)}</span>`).join('');
+  const intro=(L.intro||'');
+  const introTxt=compact ? esc(intro.slice(0,95))+(intro.length>95?'…':'') : esc(intro);
+  const ach=(L.achievements||[]).slice(0,5).map(a=>`<div>· ${esc(a)}</div>`).join('');
+  const rec=L.recruit_info||{};
+  const recTxt={yes:'招大一',likely:'大概招大一',senior_only:'只招大二以上',unclear:'未说明'}[rec.accepts_freshman]||'未说明';
+  const kv=[];
+  if(L.teacher) kv.push(`<dt>指导老师</dt><dd>${esc(L.teacher)}</dd>`);
+  if(L.location) kv.push(`<dt>地点</dt><dd>${esc(L.location)}</dd>`);
+  kv.push(`<dt>招新</dt><dd>${recTxt}${rec.window?' · '+esc(rec.window):''}${rec.note?'（'+esc(rec.note)+'）':''}</dd>`);
+
+  const reasonId = o.reasonId||'';
+  const lead = o.full
+    ? (L.intro ? '' : esc(t.reason_text||''))
+    : `<p class="lead" ${reasonId?`id="r-${reasonId}"`:''}>${esc(t.reason_text||t.reason||'')}</p>`;
+
+  return `<div class="card" ${o.wrapId?`id="${o.wrapId}"`:''}>
+    <h4>${i==null?'':`<span class="rank">${i+1}</span>`}${esc(t.name||L.name||'')}
+      ${(t.path_type||(L.path_type||[])[0])?`<span class="${tagCls(t.path_type||(L.path_type||[])[0])}">${esc(t.path_type||(L.path_type||[])[0])}</span>`:''}</h4>
+    ${lead}
+    ${areas?`<div class="sec"><b>研究方向</b><div class="chips">${areas}</div></div>`:''}
+    <div class="sec intro-sec">${introTxt?`<b>实验室简介</b>${introTxt}`:''}</div>
+    ${!compact && ach?`<div class="sec"><b>代表成果</b>${ach}</div>`:''}
+    ${!compact && kv.length?`<div class="sec"><b>基本情况</b><dl class="kv">${kv.join('')}</dl></div>`:''}
+    ${!compact && L.contact && (L.contact.qq_group||L.contact.email||L.contact.wechat)
+      ? `<div class="sec"><b>联系方式</b><dl class="kv">
+           ${L.contact.qq_group?`<dt>QQ 群</dt><dd>${esc(L.contact.qq_group)}</dd>`:''}
+           ${L.contact.email?`<dt>邮箱</dt><dd>${esc(L.contact.email)}</dd>`:''}
+           ${L.contact.wechat?`<dt>微信</dt><dd>${esc(L.contact.wechat)}</dd>`:''}
+         </dl></div>`:''}
+    ${(L.lab_id||t.lab_id)?`<div class="card-foot">
+      <a href="/lab?id=${encodeURIComponent(L.lab_id||t.lab_id)}&from=student">
+        ${compact?'查看完整档案':'在档案页打开'} →</a></div>`:''}
+  </div>`;
+}
+
+async function labOf(id){ try{ const r=await fetch('/api/lab/'+id); return await r.json(); }catch(e){ return {}; } }
+
+const REC_TXT={yes:'招大一',likely:'大概招大一',senior_only:'只招大二以上',unclear:'未说明'};
+
+function cmpCell(key,v){
+  if(key==='areas'){
+    const a=(v||[]);
+    return a.length? a.map(x=>`<span class="chip">${esc(x)}</span>`).join('') : '<span class="cmp-empty">—</span>';
+  }
+  if(key==='path'){
+    return v? `<span class="${tagCls(v)}">${esc(v)}</span>` : '<span class="cmp-empty">—</span>';
+  }
+  if(key==='recruit'){
+    const t=REC_TXT[v]||'未说明';
+    return `<span class="${v==='yes'?'tag res':v==='senior_only'?'tag comp':'tag'}">${t}</span>`;
+  }
+  if(key==='ach'){
+    const a=(v||[]);
+    return a.length? `<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="cmp-empty">暂无记录</span>';
+  }
+  return v && v!=='—' ? esc(v) : '<span class="cmp-empty">—</span>';
+}
+
+function renderCompare(r){
+  const labs=r.labs||[], rows=r.rows||[];
+  const head=labs.map(l=>`<th>${esc(l.name)}<br><span class="${tagCls(l.path_type)}">${esc(l.path_type)}</span></th>`).join('');
+  const body=rows.map(row=>{
+    const tds=(row.values||[]).map(v=>`<td>${cmpCell(row.key,v)}</td>`).join('');
+    return `<tr><th>${esc(row.label)}</th>${tds}</tr>`;
+  }).join('');
+  const cols=`<colgroup><col class="cmp-label">${labs.map(()=>'<col>').join('')}</colgroup>`;
+  const multi = labs.length >= 3;
+  const minW = (multi ? 74 : 88) + (multi ? 124 : 150) * labs.length;
+  return `<div class="cmp-wrap"><table class="cmp ${multi?'cmp-multi':''}" style="min-width:${minW}px">
+    ${cols}
+    <thead><tr><th>对比项</th>${head}</tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
+let pending = null;   // 流式卡片容器：{bubble, reasonEls:{lab_id:el}}
+
+async function render(r){
+  const b=addBot(), f=r.form;
+  // 这一轮哪几条是"上次说的"在起作用，由服务端算（它才知道哪些槽位不是本轮说的）
+  const host = (f==='①' && pending && (r.top3||[]).length) ? pending.bubble : b;
+  if(r.recall){
+    host.insertAdjacentHTML('afterbegin',
+      `<div class="recall">接着你上次说的：<b>${esc(r.recall)}</b>　要换方向直接说</div>`);
+  }
+
+  if(f==='对比'){
+    b.insertAdjacentHTML('beforeend',
+      `<div class="notice info">按研究方向、主导方向、基本情况与成果做个对照</div>`);
+    b.insertAdjacentHTML('beforeend', renderCompare(r));
+    b.insertAdjacentHTML('beforeend',
+      `<div class="tail">想深入了解其中某一个，直接说它的名字；也可以告诉我你更看重科研还是比赛，我帮你判断哪个更合适。</div>`);
+
+  } else if(f==='详情'){
+    const L=r.lab||{};
+    b.insertAdjacentHTML('beforeend',
+      `<div class="notice info">${esc(L.name)} 的详细情况</div>`);
+    b.insertAdjacentHTML('beforeend', card({name:L.name,path_type:(L.path_type||[])[0]}, null, L, {full:true}));
+    b.insertAdjacentHTML('beforeend',
+      `<div class="tail">还想了解什么呢？比如招新要求、老师的方向，或者和别的实验室比一比。</div>`);
+
+  } else if(f==='追问'){
+    b.innerHTML=`<div class="q">${esc(r.followup_question)}</div>`;
+    if((r.references||[]).length){
+      b.insertAdjacentHTML('beforeend',`<div class="notice info">${esc(r.references_note||'先给你几个参考')}</div>`);
+      for(let i=0;i<r.references.length;i++){
+        const t=r.references[i], lab=await labOf(t.lab_id);
+        b.insertAdjacentHTML('beforeend',card({...t,reason_text:'招新对大一开放、信息较完整，可以先从这类了解。'},i,lab));
+      }
+    }
+    b.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+
+  } else if(f==='②'){
+    b.innerHTML=`<div class="notice warn"><b>暂时没有对得上的实验室</b><br>${esc(r.no_match_reason||'')}<br>
+      这不代表你不能做这个方向，只是学院现有实验室里还没有对应的。</div>`;
+    if((r.references||[]).length){
+      b.insertAdjacentHTML('beforeend',`<div class="notice info">${esc(r.references_note||'')}</div>`);
+      for(let i=0;i<r.references.length;i++){
+        const t=r.references[i], lab=await labOf(t.lab_id);
+        b.insertAdjacentHTML('beforeend',card({...t,reason_text:'方向较宽、招大一，可以先了解看看。'},i,lab));
+      }
+    }
+    b.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+
+  } else if(f==='③'){
+    b.innerHTML=`<div class="notice warn"><b>没有特别对得上的，但有几个沾边的</b><br>${esc(r.no_match_reason||'')}</div>`;
+    for(let i=0;i<(r.others||[]).length;i++){
+      const o=r.others[i], lab=await labOf(o.lab_id);
+      b.insertAdjacentHTML('beforeend',card({...o,reason_text:'方向相近但不是主攻，建议先聊聊看。'},i,lab));
+    }
+    b.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+
+  } else if(f==='④'){
+    b.innerHTML=`<div class="notice info">${esc(r.notice||'先按招新开放度给你几个参考')}</div>`;
+    for(let i=0;i<(r.top3||[]).length;i++){
+      const t=r.top3[i], lab=await labOf(t.lab_id);
+      b.insertAdjacentHTML('beforeend',card(t,i,lab));
+    }
+    b.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+
+  } else {   // ① 正常推荐
+    if(pending && (r.top3||[]).length){
+      // 卡片已经在流式阶段画好了，这里只补齐简介与收尾。
+      // 注意：必须写回 pending.bubble，不能在新建的空气泡上追加——否则会出现两个气泡。
+      const target = pending.bubble;
+      if(b && b.parentElement) b.parentElement.remove();
+      for(const t of r.top3){
+        const lab=await labOf(t.lab_id);
+        const el=document.querySelector(`#c-${t.lab_id}`);
+        if(el && lab && lab.intro){
+          const sec=el.querySelector('.intro-sec');
+          if(sec) sec.innerHTML=`<b>实验室简介</b>${esc(lab.intro.slice(0,95))}${lab.intro.length>95?'…':''}`;
+        }
+      }
+      const tip=target.querySelector('.notice.info');
+      if(tip) tip.textContent = `找到 ${r.top3.length} 个匹配的`;
+      target.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+    } else {
+      for(let i=0;i<(r.top3||[]).length;i++){
+        const t=r.top3[i], lab=await labOf(t.lab_id);
+        b.insertAdjacentHTML('beforeend',card(t,i,lab));
+      }
+      b.insertAdjacentHTML('beforeend',`<div class="tail">${TAIL}</div>`);
+    }
+  }
+
+  document.querySelectorAll('.lead.typing').forEach(e=>e.classList.remove('typing'));
+  history=r.history||null;
+  if(r.memory){ mem=r.memory; paintMem(); }   // 服务端写完记忆后回填，不额外发请求
+  pending=null;
+  input.placeholder=f==='追问'?'回答上面的问题…':'还想了解别的方向？继续说';
+  scrollChat();
+  saveChat();
+}
+
+/* ---------- 发送 ---------- */
+function send(text){
+  if(busy||!text.trim()) return Promise.resolve(null);
+  return new Promise(resolve=>{ _send(text, resolve); });
+}
+
+function _send(text, resolve){
+  if(busy||!text.trim()){ resolve&&resolve(null); return; }
+  const my=++reqSeq;
+  busy=true; sendBtn.disabled=true;
+  document.querySelectorAll('.samples button').forEach(x=>x.disabled=true);
+  addMe(text); pushHist(text);
+  input.value=''; input.style.height='';
+  resetGraph();
+
+  const qs=qWith({text});
+  if(history) qs.set('history',JSON.stringify(history));
+  const es=new EventSource('/api/stream?'+qs.toString());
+  let settled=false;
+
+  es.addEventListener('step',e=>{
+    if(my!==reqSeq) return;                  // 丢弃过期请求，避免两次点击串台
+    onStep(JSON.parse(e.data));
+  });
+
+  // 流式理由：逐段追加到对应卡片
+  es.addEventListener('token',e=>{
+    if(my!==reqSeq) return;
+    const t=JSON.parse(e.data);
+    const el=document.querySelector(`#r-${t.lab_id}`);
+    if(!el) return;
+    if(t.reset){
+      // reset = "整段替换"：可能是开始占位（delta 空），也可能是校验不过回退模板（delta 有内容）
+      el.textContent = t.delta || '';
+      if(t.delta){ el.classList.remove('typing'); }
+      else { el.dataset.typing='1'; el.classList.add('typing'); }
+      scrollChat(); return;
+    }
+    el.textContent += t.delta||'';
+    scrollChat();
+  });
+  es.addEventListener('result',async e=>{
+    if(my!==reqSeq){ es.close(); return; }
+    settled=true; es.close();
+    const r=JSON.parse(e.data);
+    await render(r);
+    markLastHist(r.form);
+    busy=false; sendBtn.disabled=false;
+    document.querySelectorAll('.samples button').forEach(x=>x.disabled=false);
+    resolve&&resolve(r);
+  });
+  es.addEventListener('error',e=>{
+    if(my!==reqSeq){ es.close(); return; }
+    try{ const d=JSON.parse(e.data); addBot().textContent='出错了：'+d.msg; }catch(_){}
+    es.close(); busy=false; sendBtn.disabled=false;
+    document.querySelectorAll('.samples button').forEach(x=>x.disabled=false);
+    resolve&&resolve(null);
+  });
+  es.onerror=()=>{ if(settled) return; es.close(); busy=false; sendBtn.disabled=false;
+    document.querySelectorAll('.samples button').forEach(x=>x.disabled=false);
+    resolve&&resolve(null); };
+}
+
+sendBtn.onclick=()=>send(input.value);
+input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(input.value);} });
+input.addEventListener('input',()=>{ input.style.height='auto'; input.style.height=input.scrollHeight+'px'; });
+
+/* 预选框一律走事件委托，别再往按钮上挂 onclick。
+   原因：restoreChat() 是用 chat.innerHTML 把上一段对话贴回来的，innerHTML 只还原标签、
+   不还原监听器——刷新页面，或者从档案页点「回到对话」回来之后，问候语还在、
+   「视觉 + 比赛」那几个预选框也在，但点了没有任何反应。
+   委托挂在 chat 容器上（容器本身不会被替换），所以不管是当场画的、还是从
+   sessionStorage 贴回来的，只要带 data-t 就能发。 */
+chat.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest?e.target.closest('button'):null;
+  if(!b||b.disabled) return;
+  if(b.dataset.act==='again'){ clearMem(); return; }
+  if(b.dataset.t) send(b.dataset.t);
+});
+
+/* 档案页点「问助手」→ /chat?ask=介绍一下无人机协会
+   进来就把这句话发出去，学生不用再抄一遍实验室名字 */
+(async function askRun(){
+  const raw=new URLSearchParams(location.search).get('ask');
+  if(!raw) return;
+  await booted;
+  send(raw);
+})();
+
+/* 自动化：走一遍"点开档案页再回来"。
+   ?hop=1  —— 等回放跑完，存好对话，跳到 /chat?hop=back
+   ?hop=back —— 这一跳回来时 restoreChat 已经在问候前跑过，打个标记给测试断言 */
+(function hopRun(){
+  const q=new URLSearchParams(location.search);
+  const hop=q.get('hop');
+  if(hop==='back'){
+    // 要等 booted：贴回对话是在问候那一步做的，页面一 parse 完就查是查不到的
+    (async()=>{
+      await booted;
+      await new Promise(r=>setTimeout(r,100));
+      document.body.dataset.hop = chat.querySelector('.card') ? 'restored' : 'empty';
+      document.body.dataset.greeted = chat.textContent.includes('又见面了') ? '1' : '0';
+    })();
+    return;
+  }
+  if(hop!=='1') return;
+  (async()=>{
+    await booted;
+    if(q.get('auto')){   // 回放还没跑完就跳，存到的是半截对话
+      const t0=Date.now();
+      while(Date.now()-t0<90000 && document.body.dataset.auto!=='done')
+        await new Promise(r=>setTimeout(r,200));
+    }
+    await new Promise(r=>setTimeout(r,400));
+    saveChat();
+    const u=new URLSearchParams({hop:'back'});
+    if(SID) u.set('sid',SID);
+    location.href='/chat?'+u.toString();
+  })();
+})();
+
+/* ---------- 自动化回放（供无头浏览器截图/断言） ----------
+   用法： /?auto=["我想做视觉算法，想打比赛","对比一下这三个"]
+   全部跑完后在 <body> 打上 data-auto="done"，标题改为 READY */
+(function autoRun(){
+  const raw=new URLSearchParams(location.search).get('auto');
+  if(!raw) return;
+  let seq=[];
+  try{ seq=JSON.parse(decodeURIComponent(raw)); }catch(e){ return; }
+  (async()=>{
+    await booted;
+    for(const t of seq){
+      await send(t);
+      await new Promise(r=>setTimeout(r,600));
+    }
+    document.body.dataset.auto='done';
+    document.title='READY';
+    // 供自动化测量：把关键元素的实际像素宽写进 body.dataset
+    setTimeout(()=>{
+      const t=document.querySelector('table.cmp');
+      const w=document.querySelector('.cmp-wrap');
+      if(t){
+        const cols=[...t.querySelectorAll('thead th')].map(x=>Math.round(x.getBoundingClientRect().width));
+        const bub=t.closest('.bub');
+        document.body.dataset.measure=JSON.stringify({
+          table:Math.round(t.getBoundingClientRect().width),
+          wrap:w?Math.round(w.getBoundingClientRect().width):null,
+          bubble:bub?Math.round(bub.getBoundingClientRect().width):null,
+          cols,
+          scrollW:w?w.scrollWidth:null,
+          layout:getComputedStyle(t).tableLayout
+        });
+      }
+    },800);
+  })();
+})();
+
+/* 问候要等记忆读完，后面的 ?ask= / ?auto= 靠 booted 排在它之后 */
+(async function hello(){
+  await loadMem();
+  // 刚从这个标签页去过档案页：贴回原来那段对话，不再问"又见面了"
+  if(restoreChat()){ bootResolve(); return; }
+  const b=addBot();
+  if(mem.exists&&mem.profile){
+    // 回来的人先看到"我记得什么"，并且能一键清掉——记忆不透明就会让人不安
+    b.innerHTML=`<div class="q">又见面了。</div>
+      <div style="font-size:13.5px;color:#5f6773;margin-top:4px">
+        上次你提到：<b style="color:#15181d">${esc(mem.profile)}</b>。要接着上次看，还是重新说一个方向？</div>
+      <div class="samples">
+        <button data-t="按我上次说的方向再推荐一次">接着上次</button>
+        <button id="again" data-act="again">换个方向</button>
+      </div>`;
+    bootResolve();
+    return;
+  }
+  b.innerHTML=`<div class="q">你好，我是实验室推荐助手。</div>
+    <div style="font-size:13.5px;color:#5f6773;margin-top:4px">
+      告诉我你想做的方向、看重什么（科研 / 比赛 / 就业），有年级和技术栈判断会更准。</div>
+    <div class="samples">
+      <button data-t="我想做视觉算法，想打 RoboMaster，大一">视觉 + 比赛</button>
+      <button data-t="我想做计算成像这块，准备读研">计算成像 + 读研</button>
+      <button data-t="随便看看">随便看看</button>
+    </div>`;
+  // 不用在这里挂 onclick：点击由 chat 上的事件委托统一处理（见 sendBtn 下面那段）
+  bootResolve();
+})();
+
+/* 离开前再存一次：流式还没跑完时 render 里的 saveChat 不会执行，pagehide 兜一下 */
+addEventListener('pagehide',()=>{ if(!busy) saveChat(); });
+
+$('mem-clr').onclick=clearMem;
+</script>
+</body>
+</html>

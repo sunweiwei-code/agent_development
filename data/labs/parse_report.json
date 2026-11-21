@@ -1,0 +1,45 @@
+{
+  "lab_count": 45,
+  "issues": [
+    {
+      "lab_id": "L13",
+      "name": "边缘智能计算创新实验室",
+      "page_idx": 9,
+      "missing": [
+        "research_areas"
+      ]
+    },
+    {
+      "lab_id": "L21",
+      "name": "腾讯安全英才班实验室",
+      "page_idx": 13,
+      "missing": [
+        "achievements"
+      ]
+    },
+    {
+      "lab_id": "L25",
+      "name": "数值算法实验室",
+      "page_idx": 15,
+      "missing": [
+        "research_areas"
+      ]
+    },
+    {
+      "lab_id": "L31",
+      "name": "智能多媒体感知与推理创新实验室",
+      "page_idx": 18,
+      "missing": [
+        "research_areas"
+      ]
+    },
+    {
+      "lab_id": "L33",
+      "name": "中德物联网创新实验室",
+      "page_idx": 19,
+      "missing": [
+        "achievements"
+      ]
+    }
+  ]
+}

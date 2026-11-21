@@ -1,0 +1,299 @@
+[
+  {
+    "query": "视觉算法",
+    "lab_id": "L01",
+    "target": "视觉识别算法和雷达算法的开发",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L06",
+    "target": "计算机视觉",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L25",
+    "target": "医学图像处理以及参数生成",
+    "machine": 0.8,
+    "expected": 0.0,
+    "verdict": "错",
+    "note": "医学图像处理等跟视觉算法关联不大。"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L29",
+    "target": "机器视觉",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L30",
+    "target": "数据挖掘，医学图像处理与分析，芯片设计与开发等",
+    "machine": 0.8,
+    "expected": 0.0,
+    "verdict": "错",
+    "note": "医学图像处理等跟视觉算法关联不大。"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L32",
+    "target": "计算机视觉",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L44",
+    "target": "计算机视觉",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "视觉算法",
+    "lab_id": "L45",
+    "target": "计算机视觉",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "边缘计算",
+    "lab_id": "L42",
+    "target": "边缘计算",
+    "machine": 1.0,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "边缘计算",
+    "lab_id": "L01",
+    "target": "嵌入式控制算法",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "嵌入式控制算法跟边缘计算关联不大"
+  },
+  {
+    "query": "边缘计算",
+    "lab_id": "L10",
+    "target": "嵌入式人工智能底层研究，物联网应用，机器狗开发",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "嵌入式控制算法跟边缘计算关联不大"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L08",
+    "target": "数据分析",
+    "machine": 1.0,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L13",
+    "target": "边缘智能与分布式机器学习",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L15",
+    "target": "网络安全，数据安全, AI安全、网络攻防、密码技术、电子取证等",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "只是可能用到数据分析，但是非主攻数据分析"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L21",
+    "target": "网络空间与数据安全高端技术",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "只是可能用到数据分析，但是非主攻数据分析"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L23",
+    "target": "大数据前沿技术",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L24",
+    "target": "城市时空数据科学",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L27",
+    "target": "机器学习",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L28",
+    "target": "大数据技术与应用",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L30",
+    "target": "数据挖掘，医学图像处理与分析，芯片设计与开发等",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L31",
+    "target": "边缘智能与分布式机器学习",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L34",
+    "target": "病原体数据库",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L36",
+    "target": "(a)智能数据与信号处理",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L38",
+    "target": "大数据，物联网，云计算",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "数据分析",
+    "lab_id": "L39",
+    "target": "大数据信息安全",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L10",
+    "target": "嵌入式人工智能底层研究，物联网应用，机器狗开发",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "机器狗跟医疗机器人关联不大"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L11",
+    "target": "具身智能",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "跟医疗机器人关联不大"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L13",
+    "target": "具身智能与多模态学习",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "跟医疗机器人关联不大"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L28",
+    "target": "智能手术机器人",
+    "machine": 0.8,
+    "expected": 1.0,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L31",
+    "target": "具身智能与多模态学习",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "跟医疗机器人关联不大"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L33",
+    "target": "智能机器人及其在物联网中的应用",
+    "machine": 0.8,
+    "expected": 0.8,
+    "verdict": "对",
+    "note": "没问题"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L37",
+    "target": "具身智能",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "跟医疗机器人关联不大"
+  },
+  {
+    "query": "医疗机器人",
+    "lab_id": "L44",
+    "target": "具身智能与世界模型",
+    "machine": 0.8,
+    "expected": 0.6,
+    "verdict": "错",
+    "note": "跟医疗机器人关联不大"
+  }
+]

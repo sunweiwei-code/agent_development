@@ -1,0 +1,200 @@
+[
+  {
+    "id": "T-01",
+    "type": "明确可抽取",
+    "lab_id": "L01",
+    "utterance": "我们今年拿了 RoboMaster 全国赛一等奖",
+    "expected": [
+      {
+        "field": "achievements",
+        "op": "append",
+        "new_value": "全国大学生RoboMaster2026机甲对抗赛一等奖"
+      }
+    ],
+    "notes": "append 到数组，判重用整段完全相等（8.2）",
+    "review_verdict": "B",
+    "review_note": "复核人 2026-11-19：当前为 2026 年，教师说『今年』应指 2026 赛事，期望值原写 2024 有误。"
+  },
+  {
+    "id": "T-02",
+    "type": "明确可抽取",
+    "lab_id": "L01",
+    "utterance": "招新改到大二以上",
+    "expected": [
+      {
+        "field": "recruit_info",
+        "op": "merge",
+        "new_value": {
+          "accepts_freshman": "senior_only"
+        }
+      }
+    ],
+    "notes": "对象字段仅 merge；不清空 window/note"
+  },
+  {
+    "id": "T-03",
+    "type": "明确可抽取",
+    "lab_id": "L01",
+    "utterance": "我们的 QQ 群改成 123456789",
+    "expected": [
+      {
+        "field": "contact",
+        "op": "merge",
+        "new_value": {
+          "qq_group": "123456789"
+        }
+      }
+    ],
+    "notes": "contact 也是对象，只 merge qq_group，不动 email/wechat"
+  },
+  {
+    "id": "T-04",
+    "type": "明确可抽取",
+    "lab_id": "L26",
+    "utterance": "实验室地点搬到 C1-808 了",
+    "expected": [
+      {
+        "field": "location",
+        "op": "replace",
+        "new_value": "C1-808"
+      }
+    ],
+    "notes": "location 为单值字符串，仅允许 replace（V1.6 加入白名单）"
+  },
+  {
+    "id": "T-05",
+    "type": "明确可抽取",
+    "lab_id": "L33",
+    "utterance": "实验室介绍里补一句：本实验室与德国合作方每年互派学生交流",
+    "expected": [
+      {
+        "field": "intro",
+        "op": "append",
+        "new_value": "本实验室与德国合作方每年互派学生交流。"
+      }
+    ],
+    "notes": "字符串 append，判重用整段完全相等"
+  },
+  {
+    "id": "T-06",
+    "type": "应澄清（目标不存在，需确认）",
+    "lab_id": "L02",
+    "utterance": "去年那条省级奖项写错了，删掉",
+    "expected": "不生成提案。回复自然语言澄清：承认没找到『去年（2025）的省级奖项』，同时指出库内唯一同类项是『省级奖项合计498项』，并询问『你是想修改这条吗？』；由教师确认后才转为提案或放弃。禁止直接删除 498 那条，也禁止只回一句『未找到』了事。",
+    "notes": "remove 需整段匹配到现值，匹配不到即 value_not_found",
+    "review_verdict": "B",
+    "review_note": "复核人 2026-11-19：教师指『去年（2025）的省级奖项』，但 L02 只有『省级奖项合计498项』一条且无年份。正确行为是**澄清+候选确认**，不是静默拒绝，也不是删 498。"
+  },
+  {
+    "id": "T-07",
+    "type": "明确可抽取",
+    "lab_id": "L18",
+    "utterance": "我们新增了车机方向，加到研究方向里",
+    "expected": [
+      {
+        "field": "research_areas",
+        "op": "append",
+        "new_value": "车机系统开发"
+      }
+    ],
+    "notes": "数组 append，规范化后不存在才追加"
+  },
+  {
+    "id": "T-08",
+    "type": "明确可抽取",
+    "lab_id": "L41",
+    "utterance": "招新时间改成 10 月",
+    "expected": [
+      {
+        "field": "recruit_info",
+        "op": "merge",
+        "new_value": {
+          "window": "10月"
+        }
+      }
+    ],
+    "notes": "merge 只改 window，accepts_freshman/note 保留"
+  },
+  {
+    "id": "T-09",
+    "type": "明确可抽取",
+    "lab_id": "L01",
+    "utterance": "把组别改成机械组、电控组、视觉组",
+    "expected": [
+      {
+        "field": "group_tags",
+        "op": "replace",
+        "new_value": [
+          "机械组",
+          "电控组",
+          "视觉组"
+        ]
+      }
+    ],
+    "notes": "group_tags 为数组；L01 是唯一有组别值的记录"
+  },
+  {
+    "id": "T-10",
+    "type": "明确可抽取",
+    "lab_id": "L29",
+    "utterance": "我们今年拿了挑战杯国二，另外招新改成只收大三以上，地点换到 C1-1201",
+    "expected": [
+      {
+        "field": "achievements",
+        "op": "append",
+        "new_value": "挑战杯全国二等奖"
+      },
+      {
+        "field": "recruit_info",
+        "op": "merge",
+        "new_value": {
+          "accepts_freshman": "senior_only"
+        }
+      },
+      {
+        "field": "location",
+        "op": "replace",
+        "new_value": "C1-1201"
+      }
+    ],
+    "notes": "多字段复合指令，须拆为 3 条独立提案（FR-T10 禁止打包）"
+  },
+  {
+    "id": "T-11",
+    "type": "含混",
+    "lab_id": "L11",
+    "utterance": "更新一下我们的成果",
+    "expected": "追问，不生成提案",
+    "notes": "无字段、无内容，必须追问"
+  },
+  {
+    "id": "T-12",
+    "type": "含混",
+    "lab_id": "L34",
+    "utterance": "我们这边有点变化，你看着改",
+    "expected": "追问，不生成提案",
+    "notes": "同上，且「看着改」不得解读为批量 replace"
+  },
+  {
+    "id": "T-13",
+    "type": "含混",
+    "lab_id": "L15",
+    "utterance": "之前填的好像不太对",
+    "expected": "追问，不生成提案",
+    "notes": "指代不明，必须先问是哪个字段"
+  },
+  {
+    "id": "T-14",
+    "type": "明确可抽取",
+    "lab_id": "L17",
+    "utterance": "研究方向里那个「基于MR头显UNITY应用开发」不用写了，去掉",
+    "expected": [
+      {
+        "field": "research_areas",
+        "op": "remove",
+        "new_value": "基于MR头显UNITY应用开发"
+      }
+    ],
+    "notes": "数组 remove；该条确为 L17 的第 6 个方向（原文完全一致）。补入原因：T-06 移出可抽取集合后，G-04a 的『10 条可抽取』分母需保持。"
+  }
+]

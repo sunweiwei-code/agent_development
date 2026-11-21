@@ -1,0 +1,533 @@
+{
+  "L01": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 3,
+      "竞赛建制": true
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L02": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 656,
+      "竞赛建制": true
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L03": {
+    "path_type": [
+      "就业项目主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "就业条目": 1
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L04": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 5,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L05": {
+    "path_type": [
+      "双主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 28,
+      "科研项": 38,
+      "比值": 0.74,
+      "计数明细": "科研+38;竞赛+28"
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L06": {
+    "path_type": [
+      "双主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 5,
+      "科研项": 6,
+      "比值": 0.83,
+      "计数明细": "竞赛+1;竞赛+1;竞赛+1;竞赛+1;竞赛+1"
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L07": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "竞赛项": 1,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L08": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 150,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L09": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "竞赛项": 2,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L10": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 4,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L11": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 113
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L12": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "竞赛项": 1,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L13": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 6,
+      "科研项": 30,
+      "比值": 0.2
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L14": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 5,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L15": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 22,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L16": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 3,
+      "科研项": 26,
+      "比值": 0.12
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L17": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 5
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L18": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 20,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L19": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 4
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L20": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 3,
+      "竞赛建制": false
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L21": {
+    "path_type": [
+      "就业项目主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "就业条目": 1
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L22": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 225
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L23": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 8
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L24": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 95
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L25": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "科研项": 2
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L26": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 9
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L27": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 9
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L28": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 13
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L29": {
+    "path_type": [
+      "双主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 15,
+      "科研项": 18,
+      "比值": 0.83,
+      "计数明细": "科研+17;竞赛+15;科研+1(研制物)"
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L30": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 15
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L31": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 37
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L32": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "科研项": 1
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L33": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "low",
+    "evidence": {
+      "复核改判": "intro明确“实验室旨在推动人工智能赋能机器人前瞻性研究，聚焦基于多模态的机器人灵巧操作，并实现研究成果在新一代物联网（工业，医疗，服务）领域的转化。”"
+    },
+    "source": "review",
+    "duplicate_of": null
+  },
+  "L34": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 5,
+      "科研项": 25,
+      "比值": 0.2
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L35": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 68
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L36": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 8
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L37": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 50
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L38": {
+    "path_type": [
+      "竞赛主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 7,
+      "科研项": 2,
+      "比值": 3.5
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L39": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 6,
+      "科研项": 22,
+      "比值": 0.27
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L40": {
+    "path_type": [
+      "双主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 28,
+      "科研项": 38,
+      "比值": 0.74,
+      "计数明细": "科研+38;竞赛+28"
+    },
+    "source": "rule",
+    "duplicate_of": "L05"
+  },
+  "L41": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 23
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L42": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "科研项": 2
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L43": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "科研项": 10
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L44": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "high",
+    "evidence": {
+      "竞赛项": 26,
+      "科研项": 118,
+      "比值": 0.22
+    },
+    "source": "rule",
+    "duplicate_of": null
+  },
+  "L45": {
+    "path_type": [
+      "科研主导"
+    ],
+    "confidence": "medium",
+    "evidence": {
+      "科研项": 1
+    },
+    "source": "rule",
+    "duplicate_of": null
+  }
+}

@@ -1,0 +1,25 @@
+
+.env
+.env.local
+__pycache__/
+*.pyc
+data/indexes/*.sqlite3-wal
+data/indexes/*.sqlite3-shm
+
+# 学生端跨会话记忆（本机运行时数据，不进版本库）
+data/students/
+
+# 首页气泡的咨询计数（运行时数据）
+data/labs/hot.json
+
+# 无头浏览器的临时 profile（每个上百 MB，跑测试会自己重建）
+tests/edge-profile*/
+# 测试产出的截图与 DOM 转储
+shots/
+tmp_dl/
+
+# 教师端运行时快照与审计日志（每次校对会生成一份全量索引副本，几十 MB）
+data/teacher/
+
+# 项目内的工作记忆与临时脚本
+.workbuddy/

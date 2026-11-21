@@ -1,0 +1,19 @@
+{
+  "source": "data/raw/实验室介绍.pdf",
+  "backend": "mineru",
+  "mode": "precision",
+  "model_version": "vlm",
+  "requested_model_version": "vlm",
+  "ocr": true,
+  "table": true,
+  "formula": false,
+  "language": "ch",
+  "split_pages": false,
+  "image_text": true,
+  "image_ocr_text": true,
+  "image_binary_stored": false,
+  "parsed_at": "2026-11-13T08:21:17+00:00",
+  "page_count": 25,
+  "block_count": 921,
+  "from_cache": false
+}

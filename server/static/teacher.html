@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教师端 · 实验室档案维护</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e5e7eb; --ink:#15181d; --sub:#5f6773;
+    --accent:#2f6fed; --soft:#eaf1ff; --ok:#1a7f4b; --okbg:#e9f7ef;
+    --warn:#8a5a00; --warnbg:#fff6e6; --err:#b42318; --errbg:#fef3f2; --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);display:flex;flex-direction:column;
+    font:14.5px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+
+  /* 顶部通道条：与学生端同一套位置，但徽标换色——两端不互通，得看得出来 */
+  .appbar{flex:0 0 46px;display:flex;align-items:center;gap:9px;padding:0 16px;
+    background:#fff;border-bottom:1px solid var(--line);font-size:12.5px;
+    color:var(--sub);position:relative;z-index:30}
+  /* 与学生端同形：一个页面一个方框按钮，颜色靠 hover 区分两端 */
+  .appbar .navbtn{display:inline-flex;align-items:center;gap:5px;color:#4b5563;
+    text-decoration:none;padding:5px 12px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;font-weight:600;font-size:12.5px;line-height:1.45;transition:.15s}
+  .appbar .navbtn:hover{border-color:#bfe0d8;color:#0f766e;background:#f5fbf9}
+  .appbar .brand{color:#5f6773;margin-left:3px;font-weight:600}
+  .appbar .who{padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;
+    letter-spacing:.3px;background:#e6f4f1;color:#0f766e;margin-left:2px}
+  .appbar .grow{flex:1}
+  @media(max-width:760px){.appbar .brand{display:none}}
+
+  /* 与学生端同比例 18 : 32 : 50 */
+  .app{display:grid;
+    /* 严格 18% : 32% : 50%——用 fr 会被 minmax 下限挤压，比例失真（实测 21:37:42） */
+    grid-template-columns:18% 32% 50%;
+    flex:1 1 auto;min-height:0;overflow:hidden}
+  @media(max-width:1100px){.app{grid-template-columns:20% 34% 46%}}
+  .col{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+
+  /* ---------- 左栏 ---------- */
+  .col-left{background:#fbfcfd;border-right:1px solid var(--line)}
+  .left-top{padding:14px 12px 10px;flex:0 0 auto}
+  .rect-btn{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:12px 13px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);
+    cursor:pointer;transition:.18s;position:relative}
+  .rect-btn:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 2px 10px rgba(47,111,237,.10)}
+  .rect-btn small{display:block;font-weight:400;font-size:11.5px;color:#9aa1ab;margin-top:2px}
+  .rect-btn:after{content:"›";position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:#c3c9d2;font-size:18px}
+  .left-sub{padding:2px 14px 6px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.4px;
+    flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline}
+  .left-sub span{font-weight:400;color:#9aa1ab;font-size:11px}
+  .snaps{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 10px 14px}
+  .snap{border:1px solid var(--line);border-radius:9px;margin-bottom:7px;background:#fff;
+    padding:8px 9px;transition:.15s;cursor:default}
+  .snap:hover{border-color:#cfd8e6;box-shadow:0 1px 6px rgba(16,24,40,.05)}
+  .snap .nm{font-size:12px;font-weight:600;color:#252b34;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .snap .h{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:5px}
+  .snap .meta{font-size:10.5px;color:#9aa1ab;letter-spacing:.2px;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .snap .d{font-size:11px;color:#5f6773;margin-top:4px;line-height:1.45;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .snap.muted .nm{color:#6b7280;font-weight:500}
+  .snap button{flex:0 0 auto;padding:2px 8px;font-size:11px;border-radius:6px;border:1px solid var(--line);
+    background:#fff;color:var(--sub);cursor:pointer;transition:.15s}
+  .snap button:hover{border-color:var(--accent);color:var(--accent);background:#f7faff}
+  .snap button:disabled{opacity:.45;cursor:default}
+  .empty{padding:6px 4px;color:#9aa1ab;font-size:12px}
+
+  /* ---------- 中栏：档案 ---------- */
+  .col-mid{background:#fbfcfd;border-right:1px solid var(--line)}
+  .mid-h{padding:12px 14px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .mid-h .row{display:flex;align-items:center;gap:8px}
+  .mid-title{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mid-title.none{color:#9aa1ab;font-weight:400}
+  select{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:7px 9px;
+    font:inherit;font-size:13px;background:#fff;color:var(--ink);outline:0}
+  select:focus{border-color:var(--accent)}
+  .tag{font-size:11px;padding:1px 7px;border-radius:20px;background:#eef1f5;color:var(--sub);white-space:nowrap}
+  .tag.dual{background:#eaf1ff;color:#2f6fed}
+  .tag.res{background:#e9f7ef;color:#1a7f4b}
+  .tag.comp{background:#fff1e8;color:#b25000}
+  .mid-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 14px 40px}
+  .fld{border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 12px;margin-bottom:9px;
+    transition:border-color .25s,background .25s,box-shadow .25s;position:relative}
+  .fld .lab{font-size:11.5px;color:#98a0ab;font-weight:600;margin-bottom:4px;letter-spacing:.3px}
+  .fld .val{font-size:13px;color:#3d4552;line-height:1.65}
+  .fld .val.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:11.5px;background:#f1f3f6;color:#4b5563;padding:2px 8px;border-radius:6px}
+  .kv{display:grid;grid-template-columns:74px 1fr;gap:3px 8px;font-size:12.5px;margin:0}
+  .kv dt{color:#98a0ab}
+  .kv dd{margin:0;color:#3d4552;position:relative;border-radius:5px;padding:0 3px;transition:background .4s}
+  .li{font-size:12.5px;color:#3d4552;padding:2px 0}
+
+  /* 变更动画 */
+  .fld.flash{border-color:var(--accent);background:#f7faff;box-shadow:0 0 0 3px rgba(47,111,237,.12)}
+  .fld.flash:before{content:"正在修改";position:absolute;top:-8px;right:9px;font-size:10px;
+    background:var(--accent);color:#fff;padding:1px 7px;border-radius:20px}
+  .fld.changed{border-color:#a9d3b8;background:#f8fdfa}
+  .fld.changed:before{content:"已更新";position:absolute;top:-8px;right:9px;font-size:10px;
+    background:var(--ok);color:#fff;padding:1px 7px;border-radius:20px}
+  .dd-new{animation:pop .55s ease-out}
+  @keyframes pop{0%{transform:translateY(7px);opacity:0;background:#d9f2e3}
+    55%{opacity:1;background:#e9f7ef}100%{transform:none;background:transparent}}
+  .strike{text-decoration:line-through;color:#b42318;opacity:.65}
+
+  /* 字段内联 diff：让"改了哪一行、从什么改成什么"直接显示在档案上 */
+  .fld-diff{margin-top:7px;border-top:1px dashed #e3e8ef;padding-top:6px;
+    animation:diffIn .3s ease-out both}
+  .fld-diff .r{display:flex;gap:7px;align-items:baseline;font-size:12px;padding:1.5px 0;
+    color:#4b5563;line-height:1.5}
+  .fld-diff .r .k{flex:0 0 auto;color:#98a0ab}
+  .fld-diff .r .n{color:#127a45;font-weight:600;background:#eaf7f0;border-radius:4px;padding:0 4px}
+  .fld-diff .r .o{color:#b42318;opacity:.7;text-decoration:line-through}
+  @keyframes diffIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  /* ---------- 右栏：对话 ---------- */
+  .col-chat{background:var(--bg)}
+  .chat-h{padding:12px 20px;border-bottom:1px solid var(--line);background:#fff;display:flex;
+    align-items:center;gap:10px;flex:0 0 auto}
+  .chat-h img{width:26px;height:26px;border-radius:8px;object-fit:cover}
+  .chat-h b{font-size:14px;flex:0 0 auto;white-space:nowrap}
+  .chat-h span{font-size:12px;color:var(--sub);min-width:0;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chat{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 20px 6px;display:flex;
+    flex-direction:column;gap:15px}
+  .row2{display:flex;gap:9px;align-items:flex-start}
+  .row2.me{flex-direction:row-reverse}
+  .ava{flex:0 0 32px;width:32px;height:32px;border-radius:10px;object-fit:cover;
+    border:1px solid var(--line);background:#fff}
+  .row2.me .ava{display:grid;place-items:center;background:#4b5563;color:#fff;font-size:12px;
+    font-weight:600;border:0}
+  .bub{max-width:min(680px,92%);background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:11px 14px;box-shadow:0 1px 2px rgba(16,24,40,.04);font-size:13.5px}
+  .row2.me .bub{background:var(--soft);border-color:#d3e2ff}
+
+  .prop{border:1px solid var(--line);border-radius:11px;margin-top:9px;overflow:hidden}
+  .prop-h{background:#fafbfc;padding:7px 11px;font-size:12px;color:var(--sub);border-bottom:1px solid var(--line)}
+  .prop-b{padding:9px 11px}
+  .chg{display:flex;gap:8px;align-items:baseline;padding:4px 0;font-size:13px}
+  .chg .k{flex:0 0 88px;color:#98a0ab;font-size:12px}
+  .chg .v{flex:1;min-width:0;word-break:break-word}
+  .prop-f{display:flex;gap:8px;padding:9px 11px;border-top:1px solid var(--line);background:#fafbfc}
+  .btn{border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-weight:600;
+    padding:6px 14px;cursor:pointer;font-size:13px}
+  .btn.ghost{background:#fff;color:var(--sub);border:1px solid var(--line);font-weight:500}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  .steps{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--sub)}
+  .step{display:flex;gap:7px;align-items:center;opacity:.32;transition:.3s}
+  .step.on{opacity:1;color:var(--ink)}
+  .step .dot{width:14px;height:14px;border-radius:50%;border:1.6px solid #cfd5de;flex:0 0 14px;
+    display:grid;place-items:center;font-size:9px;color:#fff;transition:.25s}
+  .step.on .dot{background:var(--ok);border-color:var(--ok)}
+  .step.bad .dot{background:var(--err);border-color:var(--err)}
+
+  .notice{border-radius:10px;padding:8px 11px;font-size:13px;margin-top:8px}
+  .notice.ok{background:var(--okbg);color:#155c39}
+  .notice.err{background:var(--errbg);color:#912018}
+  .notice.info{background:var(--soft);color:#1c4fae}
+
+  .composer{padding:9px 20px 14px;border-top:1px solid var(--line);background:#fff;flex:0 0 auto}
+
+  /* 实验室搜索：输入框上方一行 */
+  .pk-search{position:relative;margin-bottom:8px}
+  .pk-search .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#b3bac4;
+    font-size:13px;pointer-events:none}
+  #pkInput{width:100%;border:1px solid var(--line);border-radius:10px;padding:7px 11px 7px 29px;
+    font:inherit;font-size:13px;background:#fff;outline:0;transition:.15s;color:var(--ink)}
+  #pkInput::placeholder{color:#adb4be}
+  #pkInput:focus{border-color:#b9cffb;box-shadow:0 0 0 3px rgba(47,111,237,.08)}
+  /* 输入区在页面底部，候选必须向上弹，否则被视口裁掉 */
+  .pk-menu{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:#fff;
+    border:1px solid var(--line);border-radius:11px;box-shadow:0 -6px 30px rgba(16,24,40,.14);
+    max-height:252px;overflow-y:auto;z-index:30;padding:5px;display:none}
+  .pk-menu.on{display:block;animation:menuIn .16s ease-out}
+  @keyframes menuIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .pk-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;
+    cursor:pointer;font-size:13px;transition:background .1s}
+  .pk-item:hover,.pk-item.on{background:#f2f6ff}
+  .pk-item .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pk-item .pt{font-size:10.5px;color:#98a0ab;flex:0 0 auto}
+  .pk-item mark{background:#fff0b8;color:inherit;border-radius:3px;padding:0 1px}
+  .pk-none{padding:10px;color:#9aa1ab;font-size:12.5px;text-align:center}
+
+  /* 输入区：chip 占整行，下一行是文本域 + 发送 */
+  .box{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:end;
+    border:1px solid var(--line);border-radius:13px;padding:7px 7px 7px 13px;background:#fff}
+  .box:focus-within{border-color:#b9cffb;box-shadow:0 0 0 3px rgba(47,111,237,.08)}
+  .pk-chip{grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;gap:7px;
+    max-width:100%;background:var(--soft);border:1px solid #d3e2ff;border-radius:9px;
+    padding:4px 5px 4px 10px;font-size:12.5px;color:#1c4fae;animation:chipIn .2s ease-out}
+  .pk-chip[hidden]{display:none}
+  .pk-chip .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pk-chip .x{border:0;background:transparent;color:#7c99cf;cursor:pointer;font-size:15px;
+    line-height:1;padding:1px 5px;border-radius:5px;transition:.12s}
+  .pk-chip .x:hover{background:#d8e6ff;color:#1c4fae}
+  @keyframes chipIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+  .box.nolab{border-color:#e5c9a8;background:#fffdf9}
+
+  textarea{flex:1;border:0;outline:0;resize:none;font:inherit;padding:6px 0;max-height:90px;background:transparent}
+  .send{border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-weight:600;
+    padding:8px 16px;cursor:pointer}
+  .send:disabled{opacity:.45;cursor:default}
+  .hint{margin:5px 2px 0;font-size:11.5px;color:#9aa1ab}
+  .typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#b9c0cb;margin-right:3px;
+    animation:bl 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes bl{50%{opacity:.25}}
+
+  /* ---------- 审计弹框 ---------- */
+  .mask{position:fixed;inset:0;background:rgba(16,24,40,.38);display:none;align-items:center;
+    justify-content:center;z-index:50;padding:24px}
+  .mask.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:min(720px,100%);max-height:min(76vh,720px);
+    display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(16,24,40,.24)}
+  .modal-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;
+    justify-content:space-between;align-items:center}
+  .modal-h b{font-size:15px}
+  .modal-h .close{border:0;background:#f1f3f6;width:28px;height:28px;border-radius:8px;cursor:pointer;
+    color:#5f6773;font-size:15px;line-height:1}
+  .modal-b{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 18px 18px}
+  .a-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .a-item .top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#9aa1ab}
+  .a-item .what{font-size:13px;margin-top:3px}
+  .a-item .dt{font-size:12px;color:var(--sub);margin-top:3px;word-break:break-word}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <a class="navbtn" href="/" title="回到主页，换一条通道">← 主页</a>
+  <span class="brand">实验室小助手</span>
+  <span class="who">教师端</span>
+  <span class="grow"></span>
+  <a class="navbtn" href="/lab?from=teacher" id="navLab">实验室档案 →</a>
+</header>
+<div class="app">
+
+  <!-- 左：审计入口 + 快照 -->
+  <aside class="col col-left">
+    <div class="left-top">
+      <button class="rect-btn" id="auditBtn">查看审计记录
+        <small>谁在什么时候改了什么</small>
+      </button>
+    </div>
+    <div class="left-sub">快照 <span>可回滚</span></div>
+    <div class="snaps" id="snaps"><div class="empty">暂无快照</div></div>
+  </aside>
+
+  <!-- 中：档案 -->
+  <section class="col col-mid">
+    <div class="mid-h">
+      <div class="row">
+        <div class="mid-title" id="midTitle">未选择实验室</div>
+        <span class="tag" id="tag" hidden>—</span>
+      </div>
+    </div>
+    <div class="mid-body" id="profile">
+      <div class="empty">在右下角搜索框里选一个实验室，这里会显示它的档案</div>
+    </div>
+  </section>
+
+  <!-- 右：对话 -->
+  <main class="col col-chat">
+    <div class="chat-h">
+      <img src="/static/avatar.png" alt="">
+      <b>档案维护助手</b><span id="chatSub">先选实验室，再说要改什么</span>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="composer">
+      <div class="pk-search" id="pkSearch">
+        <span class="ic">🔍</span>
+        <input id="pkInput" autocomplete="off" placeholder="输入名字查找实验室，选中后开始对话…">
+        <div class="pk-menu" id="pkMenu"></div>
+      </div>
+      <div class="box nolab" id="box">
+        <div class="pk-chip" id="pkChip" hidden>
+          <span class="nm" id="pkName"></span>
+          <button class="x" id="pkClear" title="取消选择，换一个实验室">✕</button>
+        </div>
+        <textarea id="input" rows="1" placeholder="先在上面选一个实验室"></textarea>
+        <button class="send" id="send">发送</button>
+      </div>
+      <p class="hint">Enter 发送 · Shift+Enter 换行。改动需你确认后才会写入。</p>
+    </div>
+  </main>
+</div>
+
+<!-- 审计弹框 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="modal-h"><b>审计记录</b><button class="close" id="closeM">✕</button></div>
+    <div class="modal-b" id="auditBody"><div class="empty">加载中…</div></div>
+  </div>
+</div>
+
+<script src="/static/labels.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const chat=$('chat'), input=$('input'), sendBtn=$('send');
+let labId=null, labData=null, pending=null, busy=false;
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tagCls=t=>t==='双主导'?'tag dual':t==='科研主导'?'tag res':t==='竞赛主导'?'tag comp':'tag';
+const scroll=()=>{ chat.scrollTop=chat.scrollHeight; };
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------------- 实验室：搜索 → 选中 → chip ---------------- */
+let LABS=[];
+
+async function loadLabs(){
+  LABS=await (await fetch('/api/teacher/labs')).json();
+  // 不在这里展开候选：45 条一上来就盖住聊天区，像弹了个报错面板。
+  // 输入框获得焦点或开始打字时再出（见下面的 focus / input 监听）。
+}
+
+/* 模糊匹配：忽略大小写和空格（"acm 算法" 也要能命中 "ACM算法…"） */
+const norm=s=>(s||'').toLowerCase().replace(/[\s·\-—_]/g,'');
+
+function renderMenu(q){
+  const key=norm(q);
+  const hits=LABS.filter(l=>!key||norm(l.name).includes(key)||norm(l.lab_id).includes(key)).slice(0,12);
+  const m=$('pkMenu');
+  if(!hits.length){
+    m.innerHTML='<div class="pk-none">没有匹配的实验室</div>';
+    m.classList.add('on'); return;
+  }
+  const q2=(q||'').trim();
+  m.innerHTML=hits.map(l=>{
+    let nm=esc(l.name);
+    if(q2){
+      const i=l.name.toLowerCase().indexOf(q2.toLowerCase());
+      if(i>=0) nm=esc(l.name.slice(0,i))+'<mark>'+esc(l.name.slice(i,i+q2.length))+'</mark>'
+                 +esc(l.name.slice(i+q2.length));
+    }
+    return `<div class="pk-item" data-id="${esc(l.lab_id)}">
+      <span class="t">${nm}</span><span class="pt">${esc(l.path_type||'')}</span></div>`;
+  }).join('');
+  m.classList.add('on');
+  m.querySelectorAll('.pk-item').forEach(el=>{
+    // 用 mousedown 而不是 click：blur 会先把菜单关掉
+    el.onmousedown=e=>{ e.preventDefault(); selectLab(el.dataset.id); };
+  });
+}
+
+async function selectLab(id){
+  const l=LABS.find(x=>x.lab_id===id);
+  if(!l) return;
+  labId=id;
+  $('pkName').textContent=l.name;
+  $('pkChip').hidden=false;
+  $('pkInput').value='';
+  $('pkSearch').hidden=true;         // 选中后收起搜索栏，换实验室要先叉掉
+  $('pkMenu').classList.remove('on');
+  $('box').classList.remove('nolab');
+  input.placeholder='例如：招新改到大二以上 / 实验室地点搬到 C1-808';
+  $('midTitle').textContent=l.name;
+  $('midTitle').classList.remove('none');
+  $('navLab').href='/lab?id='+encodeURIComponent(l.lab_id)+'&from=teacher';
+  $('chatSub').textContent='正在维护：'+l.name;
+  await loadLab(true);
+}
+
+function clearLab(){
+  labId=null; labData=null; pending=null;
+  $('pkChip').hidden=true;
+  $('pkSearch').hidden=false;
+  $('pkInput').value='';
+  $('box').classList.add('nolab');
+  input.placeholder='先在上面选一个实验室';
+  $('midTitle').textContent='未选择实验室';
+  $('midTitle').classList.add('none');
+  $('navLab').href='/lab?from=teacher';
+  $('chatSub').textContent='先选实验室，再说要改什么';
+  $('tag').textContent='—'; $('tag').className='tag'; $('tag').hidden=true;
+  $('profile').innerHTML='<div class="empty">在右下角搜索框里选一个实验室，这里会显示它的档案</div>';
+  $('pkInput').focus();
+  renderMenu('');
+}
+
+async function loadLab(scrollTop){
+  if(!labId) return;
+  labData=await (await fetch('/api/lab/'+labId)).json();
+  const pt=(labData.path_type||['待确认'])[0];
+  $('tag').textContent=pt; $('tag').className=tagCls(pt); $('tag').hidden=false;
+  renderProfile(labData);
+  if(scrollTop) $('profile').scrollTop=0;
+}
+
+function renderProfile(l){
+  const rec=l.recruit_info||{}, ct=l.contact||{};
+  const areas=(l.research_areas||[]).map(a=>`<span class="chip">${esc(a)}</span>`).join('');
+  const ach=(l.achievements||[]).map(a=>`<div class="li">· ${esc(a)}</div>`).join('');
+  const kv=[];
+  if(l.teacher) kv.push(`<dt>指导老师</dt><dd>${esc(l.teacher)}</dd>`);
+  if(l.location) kv.push(`<dt>地点</dt><dd>${esc(l.location)}</dd>`);
+
+  $('profile').innerHTML=`
+    <div class="fld" data-field="intro">
+      <div class="lab">实验室简介</div>
+      <div class="val clamp">${esc(l.intro||'未填写')}</div>
+    </div>
+    <div class="fld" data-field="research_areas">
+      <div class="lab">研究方向</div>
+      <div class="val"><div class="chips">${areas||'未填写'}</div></div>
+    </div>
+    <div class="fld" data-field="achievements">
+      <div class="lab">代表成果</div>
+      <div class="val">${ach||'未填写'}</div>
+    </div>
+    <div class="fld" data-field="recruit_info">
+      <div class="lab">招新信息</div>
+      <div class="val"><dl class="kv">
+        <dt>是否招大一</dt><dd>${esc(vLabel(rec.accepts_freshman))}</dd>
+        <dt>招新时间</dt><dd>${esc(rec.window||'未填写')}</dd>
+        <dt>补充说明</dt><dd>${esc(rec.note||'未填写')}</dd>
+      </dl></div>
+    </div>
+    <div class="fld" data-field="teacher">
+      <div class="lab">基本情况</div>
+      <div class="val"><dl class="kv">${kv.join('')||'<dt>—</dt><dd>未填写</dd>'}</dl></div>
+    </div>
+    <div class="fld" data-field="contact">
+      <div class="lab">联系方式</div>
+      <div class="val"><dl class="kv">
+        <dt>QQ 群</dt><dd>${esc(ct.qq_group||'未填写')}</dd>
+        <dt>邮箱</dt><dd>${esc(ct.email||'未填写')}</dd>
+      </dl></div>
+    </div>`;
+}
+
+/* ---------------- 对话 ---------------- */
+function addMe(t){
+  const r=document.createElement('div'); r.className='row2 me';
+  r.innerHTML=`<div class="ava">师</div><div class="bub">${esc(t)}</div>`;
+  chat.appendChild(r); scroll();
+}
+function addBot(html){
+  const r=document.createElement('div'); r.className='row2';
+  r.innerHTML=`<img class="ava" src="/static/avatar.png"><div class="bub">${html}</div>`;
+  chat.appendChild(r); scroll();
+  return r.querySelector('.bub');
+}
+const thinking=()=>`<span class="typing"><span></span><span></span><span></span></span> 正在核对档案…`;
+
+function changeRows(p){
+  const rows=[];
+  if(p.op==='merge'){
+    for(const [k,v] of Object.entries(p.new_value||{})){
+      const ov=(p.old_value||{})[k];
+      rows.push(`<div class="chg"><span class="k">${esc(sLabel(k))}</span>
+        <span class="v"><span class="strike">${esc(vLabel(ov))}</span> → <b>${esc(vLabel(v))}</b></span></div>`);
+    }
+  }else if(p.op==='append'){
+    rows.push(`<div class="chg"><span class="k">新增</span><span class="v"><b>${esc(human(p.new_value,90))}</b></span></div>`);
+  }else if(p.op==='remove'){
+    rows.push(`<div class="chg"><span class="k">删除</span><span class="v"><span class="strike">${esc(human(p.new_value,90))}</span></span></div>`);
+  }else{
+    rows.push(`<div class="chg"><span class="k">改前</span><span class="v"><span class="strike">${esc(human(p.old_value,80))}</span></span></div>
+      <div class="chg"><span class="k">改后</span><span class="v"><b>${esc(human(p.new_value,80))}</b></span></div>`);
+  }
+  return rows.join('');
+}
+
+async function send(){
+  const text=input.value.trim();
+  if(!text||busy) return;
+  if(!labId){
+    addBot('<div class="notice err">还没选实验室。我在下方搜索框里等着——输入名字，点一下就行。</div>');
+    $('pkInput').focus(); renderMenu('');
+    return;
+  }
+  busy=true; sendBtn.disabled=true;
+  addMe(text); input.value=''; input.style.height='';
+  const b=addBot(thinking());
+
+  try{
+    const r=await (await fetch('/api/teacher/parse',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({lab_id:labId,text})})).json();
+
+    if(!r.ok && r.code==='confirm'){
+      /* 数字看着可疑：模型那句话照原样显示，但下面直接把"出口"摆出来。
+         不逼老师补充明细——他要说的就是总量，补不出来。 */
+      pending={proposals:r.proposals,text};
+      b.innerHTML=`<div>${esc(r.question)}</div>
+        <div class="prop">
+          <div class="prop-h">如果确认没问题，就按这个写 · 共 ${r.proposals.length} 处</div>
+          <div class="prop-b">${r.proposals.map(changeRows).join('')}</div>
+          <div class="prop-f">
+            <button class="btn" data-act="ok">就按这个写</button>
+            <button class="btn ghost" data-act="no">我再改改</button>
+          </div>
+        </div>`;
+      bindProp(b); scroll();
+      return;
+    }
+
+    if(!r.ok){
+      b.innerHTML = (r.code==='clarify')
+        ? `<div>${esc(r.question||'能再具体一点吗？')}</div><div class="notice info">还没有生成改动，补充一下我再试。</div>`
+        : (r.code==='nochange')
+        ? `<div>${esc(r.question||'档案里已经是这个数字了。')}</div><div class="notice info">没有生成改动。</div>`
+        : `<div class="notice err">${esc(cLabel(r.code))}</div>`;
+      busy=false; sendBtn.disabled=false; return;
+    }
+
+    pending={proposals:r.proposals,text};
+    b.innerHTML=`<div>我理解你想改这几处，确认一下：</div>
+      <div class="prop">
+        <div class="prop-h">共 ${r.proposals.length} 处改动 · 写前会自动存快照</div>
+        <div class="prop-b">${r.proposals.map(changeRows).join('')}</div>
+        <div class="prop-f">
+          <button class="btn" data-act="ok">确认写入</button>
+          <button class="btn ghost" data-act="no">放弃</button>
+        </div>
+      </div>`;
+    bindProp(b);
+    scroll();
+  }catch(e){
+    b.innerHTML=`<div class="notice err">出错：${esc(e.message)}</div>`;
+    busy=false; sendBtn.disabled=false;
+  }
+}
+
+/* 提案卡片上的两个按钮：确认 / 放弃。普通提案和「可疑数字」确认卡共用。 */
+function bindProp(b){
+  b.querySelector('[data-act="ok"]').onclick=()=>applyProposal(b);
+  b.querySelector('[data-act="no"]').onclick=()=>{
+    b.querySelector('.prop-f').remove();
+    b.insertAdjacentHTML('beforeend','<div class="notice info">已放弃这次修改，档案没有变动。</div>');
+    pending=null; busy=false; sendBtn.disabled=false;
+  };
+}
+
+/* 确认 → 分步演示 → 中栏动画更新 */
+async function applyProposal(b){
+  const okBtn=b.querySelector('[data-act="ok"]');
+  if(okBtn) okBtn.disabled=true;
+  const steps=['核对档案现状','检查改动是否符合规则','存入快照','写入档案'];
+  b.querySelector('.prop-f').innerHTML=
+    `<div class="steps">${steps.map((s,i)=>`<div class="step" data-i="${i}"><span class="dot"></span>${s}</div>`).join('')}</div>`;
+  const els=[...b.querySelectorAll('.step')];
+
+  /* 中栏先进入"正在修改"状态（让老师看清要动的是哪一块、从什么变成什么） */
+  const first=pending.proposals[0];
+  for(const p of pending.proposals){ flash(p.field,true); previewDiff(p); }
+  if(first) scrollField(first.field);
+
+  // 自动化验收用：把状态停在"正在修改"这一刻，便于确定性截图
+  if(window.__HOLD_DIFF){ await sleep(60000); }
+
+  for(let i=0;i<3;i++){ await sleep(300); els[i].classList.add('on'); }
+
+  const r=await (await fetch('/api/teacher/apply',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lab_id:labId,proposals:pending.proposals,text:pending.text})})).json();
+
+  if(!r.ok){
+    els[3].classList.add('bad');
+    els[3].querySelector('.dot').textContent='!';
+    b.insertAdjacentHTML('beforeend',`<div class="notice err">${esc(cLabel(r.code))}</div>`);
+    for(const p of pending.proposals){ flash(p.field,false); clearDiff(p.field); }
+    busy=false; sendBtn.disabled=false; return;
+  }
+
+  await sleep(220); els[3].classList.add('on');
+  await sleep(200);
+
+  await loadLab(false);                       // 重绘档案（diff 块随之清掉）
+  for(const p of pending.proposals){ flash(p.field,false,'changed'); popValue(p.field); }
+  b.insertAdjacentHTML('beforeend',
+    `<div class="notice ok">已写入档案，并留了一个回滚点（左栏最上面那条）。不满意可以回滚。</div>`);
+  pending=null; busy=false; sendBtn.disabled=false;
+  loadSnaps(); scroll();
+}
+
+/* 字段内联 diff：改动落在哪一行、旧值是什么、新值是什么 */
+function diffBody(p){
+  const nv=p.new_value, ov=p.old_value;
+  if(p.op==='merge'&&nv&&typeof nv==='object'){
+    return Object.entries(nv).map(([k,v])=>
+      `<div class="r"><span class="k">${esc(sLabel(k))}</span>
+        <span class="o">${esc(vLabel((ov||{})[k]))}</span>
+        <span style="color:#c3c9d2">→</span>
+        <span class="n">${esc(vLabel(v))}</span></div>`).join('');
+  }
+  if(p.op==='append') return `<div class="r"><span class="k">新增</span><span class="n">${esc(human(nv,80))}</span></div>`;
+  if(p.op==='remove') return `<div class="r"><span class="k">删除</span><span class="o">${esc(human(nv,80))}</span></div>`;
+  return `<div class="r"><span class="k">改前</span><span class="o">${esc(human(ov,70))}</span></div>
+    <div class="r"><span class="k">改后</span><span class="n">${esc(human(nv,70))}</span></div>`;
+}
+function previewDiff(p){
+  const el=document.querySelector(`[data-field="${p.field}"]`);
+  if(!el) return;
+  el.querySelector('.fld-diff')?.remove();
+  el.insertAdjacentHTML('beforeend',`<div class="fld-diff">${diffBody(p)}</div>`);
+}
+function clearDiff(field){
+  document.querySelector(`[data-field="${field}"] .fld-diff`)?.remove();
+}
+function scrollField(field){
+  const el=document.querySelector(`[data-field="${field}"]`);
+  el&&el.scrollIntoView({block:'center',behavior:'smooth'});
+}
+function popValue(field){
+  const v=document.querySelector(`[data-field="${field}"] .val`);
+  if(!v) return;
+  v.classList.remove('dd-new'); void v.offsetWidth; v.classList.add('dd-new');
+}
+
+/* mode: true=正在修改（蓝），false+cls=落地（绿） */
+function flash(field, editing, cls){
+  const el=document.querySelector(`[data-field="${field}"]`);
+  if(!el) return;
+  el.classList.remove('flash','changed');
+  void el.offsetWidth;                 // 强制重排，动画可重播
+  if(editing) el.classList.add('flash');
+  else if(cls) el.classList.add(cls);
+}
+
+/* ---------------- 快照 / 审计 ---------------- */
+async function loadSnaps(){
+  const rows=await (await fetch('/api/teacher/snapshots')).json();
+  $('snaps').innerHTML = rows.length? rows.map(s=>
+    `<div class="snap${s.kind==='rollback'?' muted':''}" data-s="${esc(s.id)}">
+      <div class="nm">${esc(s.lab_name||s.lab_id||'未知实验室')}</div>
+      <div class="h">
+        <span class="meta">${esc(s.what||'回滚点')} · ${esc(s.ts||'')}</span>
+        <button data-s="${esc(s.id)}">回滚</button>
+      </div>
+      ${s.detail?`<div class="d">${esc(s.detail)}</div>`:''}
+    </div>`).join('') : '<div class="empty">暂无快照</div>';
+  $('snaps').querySelectorAll('button').forEach(btn=>btn.onclick=async()=>{
+    btn.disabled=true; btn.textContent='回滚中';
+    const r=await (await fetch('/api/teacher/rollback',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({snapshot:btn.dataset.s})})).json();
+    const card=btn.closest('.snap');
+    const nm=card.querySelector('.nm').textContent;
+    const when=card.querySelector('.meta').textContent.split('·').pop().trim();
+    addBot(r.identical
+      ? `<div class="notice ok">已回滚到 <b>${esc(nm)}</b> 在 ${esc(when)} 的状态，档案与快照逐字一致。<br>
+         这条快照已用掉，从左侧列表移除。</div>`
+      : `<div class="notice err">回滚未通过：${esc(cLabel(r.code))}</div>`);
+    await loadLab(false); loadSnaps();
+  });
+}
+
+const snapTs=s=>{
+  const m=String(s||'').match(/snap-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/);
+  return m? `${m[2]}-${m[3]} ${m[4]}:${m[5]}`:'';
+};
+async function openAudit(){
+  $('mask').classList.add('on');
+  const rows=await (await fetch('/api/teacher/audit')).json();
+  $('auditBody').innerHTML = rows.length? rows.map(a=>{
+    const ps=a.patches||[];
+    const what=ps.map(p=>fLabel(p.field)).join('、')
+      || (a.action==='rollback'?'回滚档案':'');
+    const detail=ps.length? ps.map(p=>{
+      if(p.op==='merge') return Object.entries(p.new_value||{})
+        .map(([k,v])=>`${sLabel(k)}：${vLabel((p.old_value||{})[k])} → ${vLabel(v)}`).join('；');
+      if(p.op==='append') return `新增 ${human(p.new_value,60)}`;
+      if(p.op==='remove') return `删除 ${human(p.new_value,60)}`;
+      return `${human(p.old_value,45)} → ${human(p.new_value,45)}`;
+    }).join('；') : (a.action==='rollback'
+      ? `恢复到 ${snapTs(a.snapshot)||'该快照'} 的档案状态`:'');
+    return `<div class="a-item">
+      <div class="top"><span>${esc((a.ts||'').replace('T',' '))}</span><span>${esc(a.lab_name||'')} · ${esc(a.user||'')}</span></div>
+      <div class="what">${esc(what)}</div>
+      ${detail?`<div class="dt">${esc(detail)}</div>`:''}
+    </div>`;
+  }).join('') : '<div class="empty">还没有记录</div>';
+}
+
+$('auditBtn').onclick=openAudit;
+$('closeM').onclick=()=>$('mask').classList.remove('on');
+$('mask').onclick=e=>{ if(e.target===$('mask')) $('mask').classList.remove('on'); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('mask').classList.remove('on'); });
+
+sendBtn.onclick=send;
+input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
+input.addEventListener('input',()=>{ input.style.height='auto'; input.style.height=input.scrollHeight+'px'; });
+
+/* 搜索框：输入筛选 / 上下键选 / Enter 选中 / Esc 收起 */
+let pkIdx=-1;
+const pkItems=()=>[...$('pkMenu').querySelectorAll('.pk-item')];
+function pkMark(i){
+  const it=pkItems(); if(!it.length) return;
+  pkIdx=(i+it.length)%it.length;
+  it.forEach((el,j)=>el.classList.toggle('on',j===pkIdx));
+  it[pkIdx].scrollIntoView({block:'nearest'});
+}
+$('pkInput').addEventListener('input',e=>{ pkIdx=-1; renderMenu(e.target.value); });
+$('pkInput').addEventListener('focus',e=>{ pkIdx=-1; renderMenu(e.target.value); });
+$('pkInput').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){ e.preventDefault(); pkMark(pkIdx+1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); pkMark(pkIdx-1); }
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    const it=pkItems(); if(!it.length) return;
+    selectLab(it[pkIdx>=0?pkIdx:0].dataset.id);
+  }
+  else if(e.key==='Escape'){ $('pkMenu').classList.remove('on'); }
+});
+$('pkClear').onclick=()=>clearLab();
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.pk-search')) $('pkMenu').classList.remove('on');
+});
+
+/* 供自动化测量三栏实际宽度 */
+if(new URLSearchParams(location.search).get('measure')){
+  setTimeout(()=>{
+    const cs=[...document.querySelectorAll('.col')].map(c=>Math.round(c.getBoundingClientRect().width));
+    const t=cs.reduce((a,b)=>a+b,0);
+    document.body.dataset.measure=JSON.stringify({w:cs, pct:cs.map(x=>Math.round(x/t*1000)/10)});
+  },1500);
+}
+
+/* 开场 */
+window.__ready=(async()=>{
+  await loadLabs();
+  addBot(`<div>先选实验室：下方输入框上面有搜索框，输入名字点一下，它就会挂到输入框上。</div>
+    <div style="margin-top:6px;color:#5f6773">选好之后再说要改什么——我先给你看改动，你确认后才会写进去。中间会实时显示它现在的档案。</div>`);
+  await loadSnaps();
+  // 不自动聚焦：一进来就弹 45 条候选会把聊天区盖住，像报错面板
+})();
+
+/* 自动化验收：
+ *   ?auto=pick&lab=L01              只选中，用来核对 chip 与中栏
+ *   ?auto=edit&lab=L01[&hold=1]     选实验室 → 发指令 → 看到改动预览 → 确认写入
+ *   hold=1 时停在"正在修改"那一刻，便于确定性截图 */
+(async()=>{
+  const q=new URLSearchParams(location.search);
+  if(q.get('open')==='audit'){ await window.__ready; openAudit(); }
+  const auto=q.get('auto');
+  if(auto!=='edit'&&auto!=='pick'&&auto!=='rb') return;
+  await window.__ready;
+  if(auto==='rb'){                     // 点第一条快照的回滚，验证它随即消失
+    let b=null, tw=Date.now();
+    while(Date.now()-tw<8000){ b=$('snaps').querySelector('button'); if(b) break; await sleep(100); }
+    if(!b){ document.body.dataset.auto='no-button'; return; }
+    b.click();
+    const t0=Date.now();
+    while(Date.now()-t0<15000 && !/已回滚|回滚未通过/.test(chat.textContent)) await sleep(120);
+    document.body.dataset.auto='rolled';
+    return;
+  }
+  const lid=q.get('lab');
+  if(lid){
+    await selectLab(lid);
+    chat.innerHTML='';                       // 只留本次对话，截图更干净
+    addBot(`<div>已选中 <b>${esc((labData&&labData.name)||'')}</b>，中间就是库里现在的内容。</div>`);
+  }
+  if(auto==='pick'){
+    // clear=1 模拟点叉：搜索栏应重新出现，中栏回到空状态
+    if(q.get('clear')){
+      clearLab();
+      if(q.get('q')){ $('pkInput').value=q.get('q'); renderMenu(q.get('q')); }
+    }
+    document.body.dataset.auto='picked'; return;
+  }
+  if(q.get('hold')) window.__HOLD_DIFF=1;
+  input.value=q.get('text')||'招新改到大二以上';
+  await send();
+  const t0=Date.now();
+  while(Date.now()-t0<15000 && !chat.querySelector('[data-act="ok"]')) await sleep(120);
+  const ok=chat.querySelector('[data-act="ok"]');
+  if(ok && !q.get('noconfirm')) ok.click();     // noconfirm=1 停在提案卡（含"可疑数字"确认卡）
+  document.body.dataset.auto='clicked';
+})();
+</script>
+</body>
+</html>

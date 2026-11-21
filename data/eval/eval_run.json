@@ -1,0 +1,347 @@
+[
+  {
+    "id": "Q-01",
+    "form": "①",
+    "top3": [
+      "L01",
+      "L29",
+      "L06"
+    ],
+    "reasonable": [
+      "L06",
+      "L29",
+      "L01"
+    ],
+    "hit": [
+      "L01",
+      "L29",
+      "L06"
+    ],
+    "slots": {
+      "interest": "视觉算法",
+      "goal": "竞赛",
+      "grade": "大一",
+      "target_contest": "RoboMaster"
+    },
+    "expected_slots": {
+      "interest": "视觉算法",
+      "goal": "竞赛",
+      "grade": "大一"
+    },
+    "reasons": [
+      {
+        "lab_id": "L01",
+        "text": "你想做视觉算法又盯准RoboMaster，这里正好把比赛和方向接上。实验室做运动机械结构设计、嵌入式控制算法、导航算法开发、视觉识别算法和雷达算法的开发。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L29",
+        "text": "你大一就想练视觉算法，这里对低年级开放，能早点上手。实验室做多模态智能计算、垂直大模型和机器视觉。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L06",
+        "text": "你方向是视觉算法，这里对低年级开放，能接触不少视觉相关课题。实验室做多模态大模型、情感计算、AIGC、计算机视觉、3D点云分析、行人重识别、装备可靠性、多源感知、多模态智能计算和智慧农业应用。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-02",
+    "form": "①",
+    "top3": [
+      "L02"
+    ],
+    "reasonable": [
+      "L02",
+      "L07"
+    ],
+    "hit": [
+      "L02"
+    ],
+    "slots": {
+      "interest": "算法竞赛",
+      "goal": "竞赛",
+      "target_contest": "ACM"
+    },
+    "expected_slots": {
+      "interest": "算法竞赛",
+      "goal": "竞赛"
+    },
+    "reasons": [
+      {
+        "lab_id": "L02",
+        "text": "你明确想打ACM，这里的方向直接对口，培养路径也以竞赛为主。实验室主要做国际大学生算法竞赛和中国大学生算法竞赛。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-03",
+    "form": "①",
+    "top3": [
+      "L39",
+      "L15",
+      "L21"
+    ],
+    "reasonable": [
+      "L39"
+    ],
+    "hit": [
+      "L39"
+    ],
+    "slots": {
+      "interest": "网络安全",
+      "goal": "科研"
+    },
+    "expected_slots": {
+      "interest": "网络安全",
+      "goal": "科研"
+    },
+    "reasons": [
+      {
+        "lab_id": "L39",
+        "text": "你想做科研又对网络安全感兴趣，这里正好对口，低年级也能进。实验室做大数据信息安全、数据安全与隐私、网络取证与威胁情报和终端设备安全。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L15",
+        "text": "你方向是网络安全，这里能直接上手练。实验室围绕网络安全、数据安全、AI安全、网络攻防、密码技术和电子取证展开。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L21",
+        "text": "你关注网络安全，这里偏项目和就业方向。实验室做网络空间与数据安全高端技术。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-04",
+    "form": "①",
+    "top3": [
+      "L45"
+    ],
+    "reasonable": [
+      "L45"
+    ],
+    "hit": [
+      "L45"
+    ],
+    "slots": {
+      "interest": "计算成像",
+      "goal": "科研"
+    },
+    "expected_slots": {
+      "interest": "计算成像",
+      "goal": "科研"
+    },
+    "reasons": [
+      {
+        "lab_id": "L45",
+        "text": "你想做计算成像又打算走科研，这里的方向和培养路径都对得上。实验室做计算机视觉、计算成像和三维感知。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-05",
+    "form": "追问",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "goal": "未定"
+    },
+    "expected_slots": {},
+    "reasons": []
+  },
+  {
+    "id": "Q-06",
+    "form": "追问",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "goal": "未定"
+    },
+    "expected_slots": {},
+    "reasons": []
+  },
+  {
+    "id": "Q-07",
+    "form": "追问",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "goal": "未定"
+    },
+    "expected_slots": {},
+    "reasons": []
+  },
+  {
+    "id": "Q-08",
+    "form": "①",
+    "top3": [
+      "L23",
+      "L19",
+      "L06"
+    ],
+    "reasonable": [
+      "L19",
+      "L23",
+      "L14"
+    ],
+    "hit": [
+      "L23",
+      "L19"
+    ],
+    "slots": {
+      "interest": "人工智能",
+      "goal": "未定"
+    },
+    "expected_slots": {
+      "interest": "人工智能"
+    },
+    "reasons": [
+      {
+        "lab_id": "L23",
+        "text": "你方向是人工智能，这里对低年级开放，能早点上手。实验室做大数据前沿技术、人工智能和软件理论与技术。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L19",
+        "text": "你想学人工智能，这里方向直接对口，低年级也能进。实验室主要做人工智能技术研发与应用。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L06",
+        "text": "你对人工智能感兴趣，这里方向对口且欢迎低年级。实验室研究多模态大模型、情感计算、AIGC、计算机视觉等方向。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-09",
+    "form": "追问",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "goal": "未定"
+    },
+    "expected_slots": {
+      "goal": "未定"
+    },
+    "reasons": []
+  },
+  {
+    "id": "Q-10",
+    "form": "②",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "interest": "量子计算硬件",
+      "goal": "未定"
+    },
+    "expected_slots": {
+      "interest": "量子计算硬件"
+    },
+    "reasons": []
+  },
+  {
+    "id": "Q-11",
+    "form": "②",
+    "top3": [],
+    "reasonable": [],
+    "hit": [],
+    "slots": {
+      "interest": "航空航天材料",
+      "goal": "科研"
+    },
+    "expected_slots": {
+      "interest": "航空航天材料"
+    },
+    "reasons": []
+  },
+  {
+    "id": "Q-12",
+    "form": "①",
+    "top3": [
+      "L44",
+      "L29",
+      "L06"
+    ],
+    "reasonable": [
+      "L44",
+      "L06"
+    ],
+    "hit": [
+      "L44",
+      "L06"
+    ],
+    "slots": {
+      "interest": "视觉算法",
+      "goal": "科研"
+    },
+    "expected_slots": {
+      "interest": "视觉算法",
+      "goal": "科研"
+    },
+    "reasons": [
+      {
+        "lab_id": "L44",
+        "text": "你搞视觉算法又想走科研，这里方向直接对口，低年级也收。实验室做计算机视觉、多模态大模型、3D点云分析这些。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L29",
+        "text": "你偏视觉算法、想科研，这里方向对口，双主导路径能兼顾。实验室做机器视觉、多模态智能计算和垂直大模型。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L06",
+        "text": "你学视觉算法想走科研，这里方向直接对口，低年级也能进。实验室做计算机视觉、多模态大模型和3D点云分析。",
+        "fallback": false
+      }
+    ]
+  },
+  {
+    "id": "Q-13",
+    "form": "①",
+    "top3": [
+      "L05",
+      "L17"
+    ],
+    "reasonable": [
+      "L05",
+      "L17"
+    ],
+    "hit": [
+      "L05",
+      "L17"
+    ],
+    "slots": {
+      "interest": "通信",
+      "goal": "科研"
+    },
+    "expected_slots": {
+      "interest": "通信",
+      "goal": "科研"
+    },
+    "reasons": [
+      {
+        "lab_id": "L05",
+        "text": "你方向是通信、想走科研，这里能直接上手通信网络和算法。实验室做通信网络技术研究、通信算法研究和绿色物联网应用开发。",
+        "fallback": false
+      },
+      {
+        "lab_id": "L17",
+        "text": "你想做通信科研，这里偏科研主导，能沉下心做通感算相关课题。实验室做近零功耗物联网射频前端、智能超表面、多源融合定位感知等研究。",
+        "fallback": false
+      }
+    ]
+  }
+]

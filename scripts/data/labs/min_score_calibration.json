@@ -1,0 +1,431 @@
+{
+  "profiles": [
+    {
+      "id": "A1",
+      "profile": {
+        "interest": "视觉识别",
+        "goal": "竞赛",
+        "tech_stack": "Python",
+        "grade": "大一",
+        "target_contest": "RoboMaster"
+      },
+      "top1": 0.7,
+      "top1_lab": "RoboMaster悍匠实验室",
+      "top3": [
+        0.7,
+        0.58,
+        0.58
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 6
+    },
+    {
+      "id": "A2",
+      "profile": {
+        "interest": "自然语言处理",
+        "goal": "科研",
+        "tech_stack": "PyTorch",
+        "grade": "大三"
+      },
+      "top1": 0.63,
+      "top1_lab": "大数据关键技术与应用实验室",
+      "top3": [
+        0.63,
+        0.63,
+        0.58
+      ],
+      "d_top1": 0.8,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 10
+    },
+    {
+      "id": "A3",
+      "profile": {
+        "interest": "嵌入式开发",
+        "goal": "就业",
+        "tech_stack": "C语言",
+        "grade": "大二",
+        "preferred_teacher": "宁磊"
+      },
+      "top1": 0.455,
+      "top1_lab": "嵌入式与边缘计算实验室",
+      "top3": [
+        0.455,
+        0.31,
+        0.16
+      ],
+      "d_top1": 0.8,
+      "d_max": 0.8,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 3
+    },
+    {
+      "id": "A4",
+      "profile": {
+        "interest": "数据挖掘",
+        "goal": "科研",
+        "tech_stack": "机器学习",
+        "grade": "大二"
+      },
+      "top1": 0.83,
+      "top1_lab": "计算生物学实验室",
+      "top3": [
+        0.83,
+        0.83,
+        0.79
+      ],
+      "d_top1": 0.8,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 14
+    },
+    {
+      "id": "A5",
+      "profile": {
+        "interest": "物联网",
+        "goal": "就业",
+        "tech_stack": "C语言",
+        "grade": "大一"
+      },
+      "top1": 0.55,
+      "top1_lab": "物联网软件与云计算应用实验室（物联网智慧云实验室）",
+      "top3": [
+        0.55,
+        0.525,
+        0.525
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 9
+    },
+    {
+      "id": "B1",
+      "profile": {
+        "interest": "网络安全",
+        "goal": "科研"
+      },
+      "top1": 0.63,
+      "top1_lab": "工业与信息安全实验室",
+      "top3": [
+        0.63,
+        0.375,
+        0.355
+      ],
+      "d_top1": 0.8,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 3
+    },
+    {
+      "id": "B2",
+      "profile": {
+        "interest": "机器人",
+        "goal": "竞赛"
+      },
+      "top1": 0.475,
+      "top1_lab": "大数据关键技术与应用实验室",
+      "top3": [
+        0.475,
+        0.46,
+        0.4037
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 7
+    },
+    {
+      "id": "B3",
+      "profile": {
+        "interest": "云计算",
+        "goal": "就业"
+      },
+      "top1": 0.7,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [
+        0.7,
+        0.55,
+        0.38
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 3
+    },
+    {
+      "id": "B4",
+      "profile": {
+        "interest": "信号处理",
+        "goal": "科研"
+      },
+      "top1": 0.7,
+      "top1_lab": "智能信号处理实验室",
+      "top3": [
+        0.7,
+        0.63,
+        0.63
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 14
+    },
+    {
+      "id": "C1",
+      "profile": {
+        "interest": "计算机视觉"
+      },
+      "top1": 0.575,
+      "top1_lab": "深技大-浙江大华《计算机视觉与人工智能》联合实验室",
+      "top3": [
+        0.575,
+        0.575,
+        0.505
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 6
+    },
+    {
+      "id": "C2",
+      "profile": {
+        "interest": "大语言模型"
+      },
+      "top1": 0.505,
+      "top1_lab": "深技大-浙江大华《计算机视觉与人工智能》联合实验室",
+      "top3": [
+        0.505,
+        0.505,
+        0.505
+      ],
+      "d_top1": 0.8,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 10
+    },
+    {
+      "id": "C3",
+      "profile": {
+        "interest": "集成电路"
+      },
+      "top1": 0.505,
+      "top1_lab": "传感芯片与系统集成实验室",
+      "top3": [
+        0.505,
+        0.405
+      ],
+      "d_top1": 0.8,
+      "d_max": 0.8,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 2
+    },
+    {
+      "id": "C4",
+      "profile": {
+        "interest": "生物医学"
+      },
+      "top1": 0.575,
+      "top1_lab": "大数据关键技术与应用实验室",
+      "top3": [
+        0.575,
+        0.575,
+        0.575
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 8
+    },
+    {
+      "id": "D1",
+      "profile": {
+        "interest": "算法",
+        "tech_stack": "C++"
+      },
+      "top1": 0.475,
+      "top1_lab": "RoboMaster悍匠实验室",
+      "top3": [
+        0.475,
+        0.325,
+        0.325
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 5
+    },
+    {
+      "id": "D2",
+      "profile": {
+        "interest": "鸿蒙",
+        "tech_stack": "ArkTS"
+      },
+      "top1": 0.575,
+      "top1_lab": "鸿蒙实验室",
+      "top3": [
+        0.575
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 1
+    },
+    {
+      "id": "D3",
+      "profile": {
+        "interest": "芯片",
+        "tech_stack": "Verilog"
+      },
+      "top1": 0.575,
+      "top1_lab": "传感芯片与系统集成实验室",
+      "top3": [
+        0.575,
+        0.475
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 2
+    },
+    {
+      "id": "E1",
+      "profile": {
+        "goal": "科研"
+      },
+      "top1": 0.0,
+      "top1_lab": "边缘智能计算创新实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": false,
+      "no_dir": true,
+      "elig_n": 0
+    },
+    {
+      "id": "E2",
+      "profile": {
+        "goal": "竞赛"
+      },
+      "top1": 0.0,
+      "top1_lab": "亚马逊云创中心",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": false,
+      "no_dir": true,
+      "elig_n": 0
+    },
+    {
+      "id": "E3",
+      "profile": {
+        "goal": "就业"
+      },
+      "top1": 0.0,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": false,
+      "no_dir": true,
+      "elig_n": 0
+    },
+    {
+      "id": "F1",
+      "profile": {
+        "interest": "量子计算"
+      },
+      "top1": 0.0,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": true,
+      "no_dir": false,
+      "elig_n": 0
+    },
+    {
+      "id": "F2",
+      "profile": {
+        "interest": "区块链"
+      },
+      "top1": 0.575,
+      "top1_lab": "计算生物学实验室",
+      "top3": [
+        0.575
+      ],
+      "d_top1": 1.0,
+      "d_max": 1.0,
+      "path_a": false,
+      "no_dir": false,
+      "elig_n": 1
+    },
+    {
+      "id": "F3",
+      "profile": {
+        "interest": "图形学渲染"
+      },
+      "top1": 0.0,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": true,
+      "no_dir": false,
+      "elig_n": 0
+    },
+    {
+      "id": "F4",
+      "profile": {
+        "interest": "航空航天"
+      },
+      "top1": 0.0,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": true,
+      "no_dir": false,
+      "elig_n": 0
+    },
+    {
+      "id": "G1",
+      "profile": {},
+      "top1": 0.0,
+      "top1_lab": "腾讯云科技测评实验室",
+      "top3": [],
+      "d_top1": 0.0,
+      "d_max": 0.0,
+      "path_a": false,
+      "no_dir": true,
+      "elig_n": 0
+    }
+  ],
+  "thresholds": [
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45
+  ]
+}

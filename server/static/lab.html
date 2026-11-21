@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实验室档案</title>
+<script src="/static/labels.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e5e7eb; --ink:#15181d; --sub:#5f6773;
+    --accent:#2f6fed; --soft:#eaf1ff; --warn:#8a5a00; --warnbg:#fff6e6;
+    --ok:#1a7f4b; --okbg:#e9f7ef; --r:12px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14.5px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+
+  /* 顶栏：sticky，滚动时始终能回到对话 */
+  .bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:0 22px;height:52px;background:rgba(255,255,255,.92);
+    backdrop-filter:saturate(1.6) blur(8px);border-bottom:1px solid var(--line)}
+  .back{display:inline-flex;align-items:center;gap:5px;color:var(--sub);
+    text-decoration:none;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;transition:.15s}
+  .back:hover{border-color:#cfd8e6;color:var(--ink);background:#fafbfd}
+  .back span{font-size:15px;line-height:1}
+  .crumb{font-size:13px;color:var(--ink);font-weight:600;
+    max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .grow{flex:1}
+  .btn{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;
+    padding:6px 13px;border-radius:9px;text-decoration:none;
+    background:var(--accent);color:#fff;transition:.15s}
+  .btn:hover{background:#255ecf}
+  .btn.ghost{background:#fff;color:var(--sub);border:1px solid var(--line);font-weight:500}
+  .btn.ghost:hover{border-color:#cfd8e6;color:var(--ink)}
+
+  main{max-width:1080px;margin:0 auto;padding:22px 22px 70px}
+  .state{padding:60px 10px;text-align:center;color:#9aa1ab;font-size:13.5px}
+
+  /* 首屏：名称 + 三个关键事实 + 简介全文 */
+  .hero{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:24px 26px 22px;margin-bottom:16px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .tag{font-size:11.5px;padding:2px 9px;border-radius:20px;background:#eef1f5;
+    color:var(--sub);font-weight:500}
+  .tag.dual{background:var(--soft);color:var(--accent)}
+  .tag.res{background:var(--okbg);color:var(--ok)}
+  .tag.comp{background:#fff1e8;color:#b25000}
+  .tag.time{background:#f4f5f7;color:#8a919c;font-weight:400}
+  h1{margin:0 0 14px;font-size:25px;line-height:1.35;letter-spacing:-.2px;font-weight:700}
+  .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    margin-bottom:18px}
+  .facts>div{background:#fbfcfd;padding:10px 13px}
+  .facts b{display:block;font-size:11px;font-weight:600;color:#9aa1ab;
+    letter-spacing:.4px;margin-bottom:2px}
+  .facts span{font-size:13.5px;color:var(--ink)}
+  .lead{margin:0;font-size:14.5px;line-height:1.85;color:#2b3240}
+  .lead.fold{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* 主体两栏：左内容、右速览。窄屏合并成单栏 */
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:16px;align-items:start}
+  @media(max-width:900px){.cols{grid-template-columns:1fr}.facts{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin-bottom:16px}
+  .card:last-child{margin-bottom:0}
+  .card h2{margin:0 0 12px;font-size:13px;font-weight:700;color:#3a414d;letter-spacing:.4px;
+    display:flex;align-items:center;gap:7px}
+  .card h2 .n{font-size:11px;color:#a3aab4;font-weight:500}
+  .empty{color:#a3aab4;font-size:13px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;background:#f1f3f6;color:#414a56;padding:3px 10px;border-radius:7px}
+
+  /* 成果按年份分组：一条条读起来像流水账，按年归档才有形状 */
+  .yr{display:flex;gap:11px;padding:7px 0;border-top:1px dashed #eef0f3}
+  .yr:first-child{border-top:0;padding-top:0}
+  .yr .y{flex:0 0 40px;font-size:12px;font-weight:700;color:#8a919c;
+    font-variant-numeric:tabular-nums;padding-top:1px;white-space:nowrap}
+  .yr ul{margin:0;padding:0;list-style:none;flex:1;min-width:0}
+  .yr li{font-size:13.5px;line-height:1.65;color:#2b3240;padding:1px 0}
+  .yr li+li{margin-top:2px}
+  .agg{display:inline-flex;align-items:center;gap:7px;background:var(--soft);
+    color:#1f4fbd;border-radius:9px;padding:6px 12px;font-size:13.5px;font-weight:600;
+    margin-bottom:12px}
+  .more{margin-top:10px;font-size:12.5px;color:var(--accent);background:none;border:0;
+    padding:0;cursor:pointer;font-family:inherit}
+  .more:hover{text-decoration:underline}
+
+  dl.kv{margin:0;display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px 10px}
+  dl.kv dt{font-size:12.5px;color:#9aa1ab}
+  dl.kv dd{margin:0;font-size:13.5px;color:var(--ink);word-break:break-word}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;
+    background:#f6f7f9;padding:1px 6px;border-radius:5px}
+
+  .note{display:flex;gap:8px;font-size:12.5px;line-height:1.65;border-radius:9px;padding:9px 11px}
+  .note.warn{background:var(--warnbg);color:var(--warn)}
+  .note.info{background:#f4f6f9;color:#6b7280}
+  .about{font-size:12.5px;color:#8a919c;line-height:1.8}
+  .about div+div{margin-top:3px}
+
+  /* 无 id 时的档案库：搜索 + 列表 */
+  .lib-h{margin:0 0 16px}
+  .lib-h h1{font-size:21px;margin-bottom:6px}
+  .lib-h p{margin:0;color:var(--sub);font-size:13.5px}
+  .search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;
+    font:inherit;font-size:14px;outline:0;background:#fff;margin:16px 0 10px}
+  .search:focus{border-color:#b9cffb;box-shadow:0 0 0 3px rgba(47,111,237,.08)}
+  .list{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:10px;padding:12px 16px;
+    border-top:1px solid #f0f2f5;text-decoration:none;color:inherit;transition:.12s}
+  .row:first-child{border-top:0}
+  .row:hover{background:#fafbfd}
+  .row .nm{flex:1;min-width:0;font-size:14px;font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .sub{flex:0 0 auto;font-size:11.5px;color:#a3aab4}
+  .row .arw{flex:0 0 auto;color:#c4cad3;font-size:15px}
+  .cnt{font-size:12px;color:#9aa1ab;margin:10px 2px 0}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="back" id="back" href="/"><span>←</span><b id="backTxt">主页</b></a>
+  <span class="crumb" id="crumb">实验室档案</span>
+  <div class="grow"></div>
+  <a class="btn ghost" href="/lab" id="allBtn">全部实验室</a>
+</header>
+<main id="page"><div class="state">正在读取档案…</div></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const ESC = s => String(s ?? '').replace(/[&<>"]/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tagCls = pt => pt === '双主导' ? 'tag dual'
+  : pt === '科研主导' ? 'tag res'
+  : pt === '竞赛主导' ? 'tag comp' : 'tag';
+const REC = {yes:'招大一', likely:'大概招大一', senior_only:'只招大二以上', unclear:'未说明'};
+const DID = {yes:'招', likely:'大概率招', senior_only:'不招', unclear:'未说明'};
+
+/* 从哪条线进来，就回哪条线。
+   三条线各留一个返回方框，页内不再摆第二个去同一处的按钮——
+   多一个链接不会报错，只会让人在顶栏上多犹豫一秒。
+   教师端点的档案回教师端（那边也有对话区），学生端点的回对话。 */
+const FROM = (new URLSearchParams(location.search).get('from') || '').toLowerCase();
+const withFrom = h => FROM ? h + (h.includes('?') ? '&' : '?') + 'from=' + encodeURIComponent(FROM) : h;
+const BACK = FROM === 'teacher' ? {href:'/teacher', txt:'回到对话'}
+           : FROM === 'student' ? {href:'/chat', txt:'回到对话'}
+           : {href:'/', txt:'主页'};
+
+function paintNav(){
+  $('#back').href = BACK.href;
+  $('#backTxt').textContent = BACK.txt;
+  $('#allBtn').href = withFrom('/lab');
+}
+paintNav();
+
+/* 年份分组：档案里的成果多以「2023xxx」开头，按年归档比一长串列表好读。
+   但同一批数据里还有「……二等奖,2021」这种年份在末尾的写法，两种都要认。
+   认不出年份的（如「累计获得各类奖项 100000 项」）单独成组，不硬塞进某一年。 */
+function splitYear(str){
+  // 开头：2023xxx / 2023年xxx
+  let m = /^((?:19|20)\d{2})\s*年?/.exec(str);
+  if(m) return {y: m[1], rest: str.slice(m[0].length).trim() || str};
+  // 末尾：xxx,2021 / xxx，2021 / xxx（2021）
+  m = /[，,、;；\s]*[（(]?((?:19|20)\d{2})[）)]?\s*[。.]?\s*$/.exec(str);
+  if(m){
+    const rest = str.slice(0, m.index).replace(/[，,、;；\s]+$/, '').trim();
+    return {y: m[1], rest: rest || str};
+  }
+  return null;
+}
+
+function splitAch(list){
+  const agg = [], years = new Map(), other = [];
+  for(const s of list || []){
+    const str = String(s);
+    if(/^累计获得各类/.test(str)){ agg.push(str); continue; }
+    const p = splitYear(str);
+    if(p){
+      if(!years.has(p.y)) years.set(p.y, []);
+      years.get(p.y).push(p.rest);
+    }else other.push(str);
+  }
+  const groups = [...years.entries()].sort((a, b) => b[0] - a[0]);
+  if(other.length) groups.push(['其他', other]);
+  return {agg, groups};
+}
+
+function achHTML(list){
+  const {agg, groups} = splitAch(list);
+  const total = groups.reduce((n, g) => n + g[1].length, 0);
+  const LIMIT = 12;
+  let shown = 0, cut = false;
+  const body = groups.map(([y, items]) => {
+    if(shown >= LIMIT){ cut = true; return ''; }
+    const take = items.slice(0, LIMIT - shown);
+    if(take.length < items.length) cut = true;
+    shown += take.length;
+    return `<div class="yr"><div class="y">${y}</div><ul>${
+      take.map(x => `<li>${ESC(x)}</li>`).join('')}</ul></div>`;
+  }).join('');
+  const aggHTML = agg.length
+    ? `<div class="agg">📊 ${ESC(agg.join('；'))}</div>` : '';
+  const more = cut
+    ? `<button class="more" id="moreAch">展开全部 ${total} 条 ↓</button>` : '';
+  return aggHTML + `<div id="achBody">${body}</div>${more}`;
+}
+
+function factsHTML(L){
+  const rec = L.recruit_info || {};
+  const recTxt = REC[rec.accepts_freshman] || '未说明';
+  return `<div class="facts">
+    <div><b>指导老师</b><span>${ESC(L.teacher || '未填写')}</span></div>
+    <div><b>实验室地点</b><span>${ESC(L.location || '未填写')}</span></div>
+    <div><b>招新</b><span>${ESC(recTxt)}${rec.window ? ' · ' + ESC(rec.window) : ''}</span></div>
+  </div>`;
+}
+
+function recruitHTML(L){
+  const rec = L.recruit_info || {};
+  const rows = [];
+  rows.push(`<dt>招收年级</dt><dd>${ESC(REC[rec.accepts_freshman] || '未说明')}</dd>`);
+  rows.push(`<dt>招新时间</dt><dd>${rec.window ? ESC(rec.window) : '<span class="empty">未说明</span>'}</dd>`);
+  if(rec.note) rows.push(`<dt>补充说明</dt><dd>${ESC(rec.note)}</dd>`);
+  const hint = (rec.accepts_freshman === 'unclear' || !rec.accepts_freshman)
+    ? `<div class="note info" style="margin-top:12px">招新信息未在这份材料里说明，直接问助手或到实验室咨询更准。</div>`
+    : '';
+  return `<dl class="kv">${rows.join('')}</dl>${hint}`;
+}
+
+function contactHTML(L){
+  const c = L.contact || {};
+  const rows = [];
+  if(c.qq_group) rows.push(`<dt>QQ 群</dt><dd><span class="mono">${ESC(c.qq_group)}</span></dd>`);
+  if(c.email) rows.push(`<dt>邮箱</dt><dd><span class="mono">${ESC(c.email)}</span></dd>`);
+  if(c.wechat) rows.push(`<dt>微信</dt><dd><span class="mono">${ESC(c.wechat)}</span></dd>`);
+  if(!rows.length) return `<div class="empty">这份材料里没有公开联系方式，招新期间可直接到实验室咨询。</div>`;
+  return `<dl class="kv">${rows.join('')}</dl>`;
+}
+
+function aboutHTML(L){
+  const conf = {high:'信息较完整', medium:'部分信息待确认', low:'信息较少'}[L.confidence] || '—';
+  const warn = L.conflict_sample
+    ? `<div class="note warn" style="margin-bottom:10px">不同来源对这家实验室的说法有出入，具体信息建议向实验室本人确认。</div>` : '';
+  return `${warn}<div class="about">
+    <div>档案更新　${ESC(L.updated_at || '未标注')}</div>
+    <div>完整程度　${ESC(conf)}</div>
+    <div>资料来源　学院公示材料与公开信息整理</div>
+    <div style="margin-top:8px;color:#a3aab4">内容由实验室老师维护，如有出入以实验室说明为准。</div>
+  </div>`;
+}
+
+function renderLab(L){
+  const pts = L.path_type || [];
+  const tags = pts.map(p => `<span class="${tagCls(p)}">${ESC(p)}</span>`).join('')
+    + `<span class="tag time">档案更新 ${ESC(L.updated_at || '未标注')}</span>`;
+  const areas = (L.research_areas || []).length
+    ? `<div class="chips">${L.research_areas.map(a => `<span class="chip">${ESC(a)}</span>`).join('')}</div>`
+    : `<div class="empty">这份材料里没有列出研究方向，可以直接问助手它平时在做什么。</div>`;
+  const n = (L.achievements || []).length;
+  const ach = n
+    ? achHTML(L.achievements)
+    : `<div class="empty">暂无可查的获奖或成果记录。</div>`;
+  const dn = L.direction_notes
+    ? `<div class="card"><h2>方向说明</h2><p style="margin:0;font-size:13.5px;line-height:1.85;color:#2b3240">${ESC(L.direction_notes)}</p></div>` : '';
+  // 600 字的简介铺满首屏，把"研究方向/招新"全推到折叠线以下，先折四行
+  const intro = L.intro || '暂无简介。';
+  const longIntro = intro.length > 240;
+
+  $('#crumb').textContent = L.name || '实验室档案';
+  document.title = (L.name || '实验室档案') + ' · 实验室档案';
+
+  $('#page').innerHTML = `
+    <section class="hero">
+      <div class="tags">${tags}</div>
+      <h1>${ESC(L.name || '未命名实验室')}</h1>
+      ${factsHTML(L)}
+      <p class="lead${longIntro ? ' fold' : ''}" id="lead">${ESC(intro)}</p>
+      ${longIntro ? `<button class="more" id="moreIntro">展开全文 ↓</button>` : ''}
+    </section>
+    <div class="cols">
+      <div>
+        <div class="card"><h2>研究方向</h2>${areas}</div>
+        <div class="card"><h2>代表成果 ${n?`<span class="n">${n} 条</span>`:''}</h2>${ach}</div>
+        ${dn}
+      </div>
+      <aside>
+        <div class="card"><h2>招新信息</h2>${recruitHTML(L)}</div>
+        <div class="card"><h2>联系方式</h2>${contactHTML(L)}</div>
+        <div class="card"><h2>关于这份档案</h2>${aboutHTML(L)}</div>
+      </aside>
+    </div>`;
+
+  const moreIntro = $('#moreIntro');
+  if(moreIntro) moreIntro.onclick = () => {
+    $('#lead').classList.remove('fold');
+    moreIntro.remove();
+  };
+  const m = $('#moreAch');
+  if(m) m.onclick = () => {
+    const {groups} = splitAch(L.achievements);
+    $('#achBody').innerHTML = groups.map(([y, items]) =>
+      `<div class="yr"><div class="y">${y}</div><ul>${
+        items.map(x => `<li>${ESC(x)}</li>`).join('')}</ul></div>`).join('');
+    m.remove();
+  };
+  document.body.dataset.lab = L.lab_id || '';
+  document.body.dataset.ready = '1';
+}
+
+/* 无 id 时当档案库用：45 个实验室，搜名字或方向都能过滤 */
+function renderLib(labs){
+  $('#crumb').textContent = '实验室档案库';
+  document.title = '实验室档案库';
+  $('#allBtn').style.display = 'none';
+  $('#page').innerHTML = `
+    <div class="lib-h">
+      <h1>实验室档案库</h1>
+      <p>共 ${labs.length} 个实验室。点开看完整档案，或回对话页让助手按你的兴趣推荐。</p>
+      <input class="search" id="q" placeholder="搜实验室名字、研究方向，例如：无人机 / 视觉 / 网络安全">
+    </div>
+    <div class="list" id="list"></div>
+    <div class="cnt" id="cnt"></div>`;
+
+  const draw = kw => {
+    const k = kw.trim().toLowerCase();
+    const hit = labs.filter(l => !k
+      || (l.name || '').toLowerCase().includes(k)
+      || (l.research_areas || []).some(a => String(a).toLowerCase().includes(k))
+      || (l.teacher || '').toLowerCase().includes(k));
+    $('#list').innerHTML = hit.length ? hit.map(l => `
+      <a class="row" href="${withFrom('/lab?id=' + encodeURIComponent(l.lab_id))}">
+        <span class="nm">${ESC(l.name)}</span>
+        <span class="${tagCls((l.path_type || [])[0])}">${ESC((l.path_type || [])[0] || '待确认')}</span>
+        <span class="sub">${ESC(l.teacher || '')}</span>
+        <span class="arw">›</span>
+      </a>`).join('') : `<div class="state">没有匹配的实验室</div>`;
+    $('#cnt').textContent = k ? `匹配 ${hit.length} 个` : '';
+    document.body.dataset.count = hit.length;
+  };
+  $('#q').oninput = e => draw(e.target.value);
+  draw('');
+  document.body.dataset.ready = '1';
+}
+
+(async () => {
+  const q = new URLSearchParams(location.search);
+  let id = q.get('id') || q.get('lab');
+  if(!id){
+    const m = /\/lab\/(L\d+)/.exec(location.pathname);
+    if(m) id = m[1];
+  }
+  try{
+    if(id){
+      // hit=1：学生真的打开了这份档案，记一次"咨询"（首页气泡按它排名）；
+      // 从教师端进来是校对，不算咨询，所以不加这个参数
+      const r = await fetch('/api/lab/' + encodeURIComponent(id) + (FROM === 'teacher' ? '' : '?hit=1'));
+      if(!r.ok) throw new Error('not found');
+      const L = await r.json();
+      if(!L || L.error) throw new Error('not found');
+      renderLab(L);
+    }else{
+      const all = await (await fetch('/api/teacher/labs')).json();
+      const full = await Promise.all(all.map(x =>
+        fetch('/api/lab/' + x.lab_id).then(r => r.json()).catch(() => x)));
+      renderLib(full.filter(x => x && x.lab_id));
+    }
+  }catch(e){
+    $('#page').innerHTML = `<div class="state">没找到这个实验室的档案。<br>
+      <a href="${withFrom('/lab')}" style="color:#2f6fed">浏览全部实验室</a> · 
+      <a href="/" style="color:#2f6fed">回到主页</a></div>`;
+    document.body.dataset.ready = 'err';
+  }
+})();
+</script>
+</body>
+</html>
