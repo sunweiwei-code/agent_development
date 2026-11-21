@@ -40,16 +40,31 @@ BATCH = 10
 RRF_K = 60
 
 
+def _key_from_env_file(path):
+    """从 .env 里抠一行 key（不落盘、不打印）。"""
+    if not path.exists():
+        return ""
+    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = line.strip()
+        if line.startswith("DASHSCOPE_API_KEY") and "=" in line:
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return ""
+
+
 def load_key():
-    """优先环境变量，其次读旧项目 .env（不落盘、不打印）。"""
+    """优先环境变量，其次本项目的 .env，最后才回退到老项目的 .env。"""
     k = os.environ.get("DASHSCOPE_API_KEY")
     if k:
         return k
-    if ENV_OLD.exists():
-        for line in ENV_OLD.read_text(encoding="utf-8", errors="ignore").splitlines():
-            if line.startswith("DASHSCOPE_API_KEY"):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("找不到 DASHSCOPE_API_KEY")
+    # 别人 clone 下来只会配自己项目的 .env，不认旧目录——所以本项目 .env 排在最前
+    k = _key_from_env_file(ROOT / ".env")
+    if k:
+        return k
+    k = _key_from_env_file(ENV_OLD)
+    if k:
+        return k
+    raise SystemExit("找不到 DASHSCOPE_API_KEY：填到项目根目录 .env，或设为环境变量")
+
 
 
 def embed(texts, key, text_type="document"):

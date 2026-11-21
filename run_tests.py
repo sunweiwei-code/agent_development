@@ -10,9 +10,12 @@
 为什么要有这个：之前每次改完都是零散地敲五六条命令，靠眼睛看输出。
 漏跑一套就等于没测——形态③的覆盖断掉那次，就是因为只跑了单点测试。
 """
+import atexit
 import re
+import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -62,6 +65,39 @@ CASES = [
 ]
 
 
+def _port_open(port=8000, host="127.0.0.1"):
+    try:
+        socket.create_connection((host, port), 1).close()
+        return True
+    except OSError:
+        return False
+
+
+def _ensure_server():
+    """用例大多要走 HTTP（127.0.0.1:8000），没起服务就跑=一片红，且看不出原因。
+
+    端口占用时就当是用户自己开着的，跑完不动它；没占用就自己起一个，结束时收掉——
+    这样 clone 下来直接 `python run_tests.py` 也能跑，不用先另开一个终端。
+    """
+    if _port_open():
+        return None
+    log = ROOT / "tmp_dl" / "run_tests_server.log"
+    log.parent.mkdir(exist_ok=True)
+    with open(log, "w", encoding="utf-8") as f:
+        proc = subprocess.Popen([PY, "server/app.py"], cwd=ROOT, stdout=f, stderr=subprocess.STDOUT)
+    for _ in range(40):
+        time.sleep(0.25)
+        if _port_open():
+            print("（没有检测到服务，已自动起在 127.0.0.1:8000）")
+            atexit.register(proc.terminate)      # 正常结束或 Ctrl+C 都收掉，不留孤儿进程
+            return proc
+        if proc.poll() is not None:
+            break
+    print(f"服务起不来，看 {log}")
+    proc.terminate()
+    return None
+
+
 def run(cmd, timeout):
     p = subprocess.run([PY] + cmd, cwd=ROOT, capture_output=True, timeout=timeout)
     out = (p.stdout or b"").decode("utf-8", "ignore") + (p.stderr or b"").decode("utf-8", "ignore")
@@ -71,6 +107,9 @@ def run(cmd, timeout):
 def main():
     fast = "--fast" in sys.argv
     rows, bad = [], 0
+    srv = _ensure_server()
+    if srv is None and not _port_open():
+        return 1
 
     for name, cmd, ok, is_fast in CASES:
         if fast and not is_fast:
